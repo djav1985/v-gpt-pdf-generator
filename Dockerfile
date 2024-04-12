@@ -3,7 +3,7 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # Set the working directory in the container
 WORKDIR /app
-
+ENV PYTHONPATH=/app
 # Install cron
 RUN apt-get update && apt-get install -y cron
 
