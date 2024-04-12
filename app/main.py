@@ -4,6 +4,7 @@ import os
 import pdfkit
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks  # Core FastAPI and utility imports
 from starlette.responses import FileResponse, JSONResponse  # Correct imports from starlette for response handling
+from starlette.requests import Request
 from pydantic import BaseModel  # Import BaseModel for request body data validation
 from starlette.middleware.base import BaseHTTPMiddleware  # Middleware base class
 from apscheduler.schedulers.background import BackgroundScheduler  # Scheduler for tasks
@@ -31,11 +32,18 @@ BASE_URL = os.getenv("BASE_URL", "http://localhost")
 # Class for handling API key authentication
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Define a list of routes that don't require authentication
+        paths = ["/docs", "/openapi.json", "/redoc"]
+        if request.url.path in paths:
+            # Skip authentication for documentation and open API JSON
+            return await call_next(request)
+
+        # API key validation as before
         api_key = request.headers.get('Authorization')
-        if not api_key or api_key != API_KEY:
+        if not api_key or api_key != os.getenv("API_KEY"):
             return JSONResponse(status_code=403, content={"message": "Invalid or missing API Key"})
-        response = await call_next(request)
-        return response
+        
+        return await call_next(request)
 
 # Add the authentication middleware to the app
 app.add_middleware(AuthMiddleware)
