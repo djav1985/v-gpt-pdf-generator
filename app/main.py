@@ -119,10 +119,10 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
 # Root endpoint serving index.html directly
 @app.get("/")
 async def root():
-    return FileResponse("app/public/index.html")
+    return FileResponse("/app/public/index.html")
 
 # Mount a static files directory at /downloads to serve generated PDFs
 app.mount("/downloads", StaticFiles(directory="/app/downloads"), name="downloads")
 
 # Serve static files (HTML, CSS, JS, images)
-app.mount("/static", StaticFiles(directory="app/public"), name="static")
+app.mount("/static", StaticFiles(directory="/app/public"), name="static")
