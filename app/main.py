@@ -10,8 +10,8 @@ from apscheduler.schedulers.background import BackgroundScheduler  # Scheduler f
 import atexit  # Handle cleanup operations on exit
 
 # Relative imports for local modules, ensure the directory structure supports this
-from .pdf_generator import generate_pdf
-from .cleanup import delete_old_pdfs
+from pdf_generator import generate_pdf
+from cleanup import delete_old_pdfs
 
 # Initialize the FastAPI application
 app = FastAPI()
