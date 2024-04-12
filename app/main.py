@@ -1,63 +1,57 @@
-import os
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
-from apscheduler.schedulers.background import BackgroundScheduler
-import atexit
+# Importing necessary modules and libraries
+from os import getenv
+from fastapi import FastAPI, HTTPException, FileResponse
+from pathlib import Path
+import pdfkit
+import asyncio
 
-# Assuming pdf_generator and cleanup are in the same directory or correctly installed as packages
-from pdf_generator import generate_pdf
-from cleanup import delete_old_pdfs
+# Getting the base URL from environment variables. If not set, default to "http://localhost"
+BASE_URL = getenv("BASE_URL", "http://localhost")
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost")
-
+# Initialize the FastAPI app
 app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
-    description="API for generating and managing PDFs",
+    # Updated description to accurately reflect the functionality of the API
+    description="A FastAPI application that generates PDFs from HTML and CSS content",
     servers=[{"url": BASE_URL, "description": "Base API server"}]
 )
 
-scheduler = BackgroundScheduler()
-scheduler.add_job(delete_old_pdfs, 'interval', days=1)
-scheduler.start()
+# Function to generate a PDF from provided HTML and CSS content
+async def generate_pdf(html_content, css_content, output_path, options=None):
+    # Default PDF generation options
+    default_options = {
+        'page-size': 'Letter',
+        'encoding': "UTF-8",
+        'custom-header': [('Accept-Encoding', 'gzip')],
+        'no-outline': None
+    }
+    # If custom options are provided, update the defaults with these
+    if options:
+        default_options.update(options)
 
-atexit.register(lambda: scheduler.shutdown())
+    # If CSS content is provided, prepend it to the HTML content
+    if css_content:
+        html_content = f"<style>{css_content}</style>{html_content}"
 
-class CreatePDFRequest(BaseModel):
-    html_content: str = Field(..., example="<html><body><p>Hello World</p></body></html>")
-    css_content: str = Field(..., example="p { color: red; }")
-    output_filename: str = Field(..., example="example.pdf")
+    # Generate the PDF using pdfkit and asyncio for non-blocking operation
+    await asyncio.to_thread(pdfkit.from_string, html_content, output_path, options=default_options)
 
-class CreatePDFResponse(BaseModel):
-    message: str
-    download_url: str
-
-@app.post("/create", response_model=CreatePDFResponse)
-async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
-    output_path = f"/app/downloads/{request.output_filename}.pdf"
-    background_tasks.add_task(
-        generate_pdf,
+# Endpoint for creating a new PDF
+@app.post("/create")
+async def create_pdf(request: CreatePDFRequest):
+    # Define the output path for the generated PDF
+    output_path = Path("/app/downloads") / f"{request.output_filename}.pdf"
+    # Call the generate_pdf function to create the PDF
+    await generate_pdf(
         html_content=request.html_content,
         css_content=request.css_content,
         output_path=output_path
     )
-    return {
-        "message": "PDF creation started successfully",
-        "download_url": f"{BASE_URL}/download/{request.output_filename}"
-    }
 
-@app.get("/download/{filename}", responses={
-    200: {
-        "content": {"application/pdf": {}},
-        "description": "Returns the requested PDF file."
-    },
-    404: {
-        "description": "PDF file not found"
-    }
-})
-async def download_pdf(filename: str):
-    file_path = f"/app/downloads/{filename}.pdf"
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="PDF file not found")
-    return FileResponse(path=file_path, filename=filename, media_type='application/pdf')
+    # If the file does not exist after generation, raise a 404 error
+    if not output_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Return the generated PDF as a FileResponse
+    return FileResponse(path=str(output_path), filename=f"{request.output_filename}.pdf", media_type='application/pdf')

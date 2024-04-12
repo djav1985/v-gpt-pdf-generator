@@ -10,7 +10,6 @@ services:
       - "8075:80"  # Map port 80 of the container to port 80 on the host
     environment:
       - BASE_URL=https://pdf.hugev.xyz  # Set this to your actual base URL
-      - API_KEY=your_api_key_here  # Replace with your actual API key
     volumes:
       - downloads:/app/downloads  # Ensure downloads directory is persistent
 
