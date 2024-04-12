@@ -1,10 +1,12 @@
 import os
 import pdfkit
+import json
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import Headers
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
@@ -35,10 +37,37 @@ atexit.register(lambda: scheduler.shutdown())
 
 class RequestLogMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Log request headers and body
         body = await request.body()
-        print(f"Received request at {request.url} with body: {body.decode()}")
+        headers = Headers(request.headers)
+
+        # Attempt to decode JSON body for logging, if it fails, log raw body
+        try:
+            body_content = json.loads(body.decode())
+            print(f"Request body: {json.dumps(body_content, indent=2)}")
+        except json.JSONDecodeError:
+            print(f"Request body (raw): {body.decode()}")
+
+        print(f"Request headers: {dict(headers)}")
+        print(f"Received request at {request.url}")
+
+        # Process the request
         response = await call_next(request)
+
+        # This section is optional: logging response details
+        response_body = [chunk async for chunk in response.body_iterator]
+        response_body = b''.join(response_body)
+        try:
+            response_content = json.loads(response_body.decode())
+            print(f"Response body: {json.dumps(response_content, indent=2)}")
+        except json.JSONDecodeError:
+            print(f"Response body (raw): {response_body.decode()}")
+
+        # Restore response body for actual response
+        response.body_iterator = iter([response_body])
         return response
+
+app.add_middleware(RequestLogMiddleware)
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
