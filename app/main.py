@@ -35,25 +35,6 @@ scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
 
-class RequestLogMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        body = await request.body()
-        headers = Headers(request.headers)
-        print(f"Received request at {request.url} with headers: {dict(headers)} and body: {body.decode()}")
-
-        response = await call_next(request)
-
-        # Handling response for logging
-        response_body = b''
-        async for chunk in response.body_iterator:
-            response_body += chunk
-
-        print(f"Response body: {response_body.decode()}")
-        response.body_iterator = iter([response_body])  # Reset the iterator so the response can be sent to the client
-        return response
-
-app.add_middleware(RequestLogMiddleware)
-
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.url.path in ["/docs", "/openapi.json", "/redoc"]:
