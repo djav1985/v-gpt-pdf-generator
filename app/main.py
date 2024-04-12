@@ -45,7 +45,7 @@ def generate_pdf(html_content, css_content, output_path):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint for creating a new PDF
-@app.post("/create")
+@app.post("/create", operation_id="create_pdf)
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
     # Define the output path for the generated PDF
     output_path = Path("/app/downloads") / f"{request.output_filename}"
@@ -81,7 +81,7 @@ def convert_url_to_pdf(url: str, output_path: str):
         print(f"Failed to convert {url} to PDF: {str(e)}")  # Log error
 
 # Endpoint for converting URLs to PDFs
-@app.post("/convert_urls")
+@app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
 async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks):
     # Validate the number of URLs
     if len(request.urls) > 5:
