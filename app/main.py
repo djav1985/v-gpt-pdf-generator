@@ -1,32 +1,36 @@
 # Importing necessary modules and libraries
-from concurrent.futures import ThreadPoolExecutor
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
-from pathlib import Path
-from os import getenv
-from pydantic import BaseModel
-from weasyprint import HTML, CSS
+from fastapi import FastAPI, HTTPException, BackgroundTasks  # FastAPI framework components
+from fastapi.responses import FileResponse  # Response class for serving files
+from fastapi.staticfiles import StaticFiles  # Serve static files
+from pathlib import Path  # Path manipulation
+from os import getenv  # Environment variables
+from pydantic import BaseModel  # Data validation
+from weasyprint import HTML, CSS  # PDF generation
+from urllib.parse import urlparse  # URL parsing
+from typing import List  # Type hinting
+from concurrent.futures import ThreadPoolExecutor  # Asynchronous execution
+import requests  # HTTP requests
 
-# Define your request model
-class CreatePDFRequest(BaseModel):
-    html_content: str
-    css_content: str
-    output_filename: str
 
-# Getting the base URL from environment variables. If not set, default to "http://localhost"
+# Base URL for the API server
 BASE_URL = getenv("BASE_URL", "http://localhost")
 
-# Initialize the FastAPI app
+# FastAPI application instance
 app = FastAPI(
-    title="PDF Generation API",
-    version="0.1.0",
-    description="A FastAPI application that generates PDFs from HTML and CSS content",
-    servers=[{"url": BASE_URL, "description": "Base API server"}]
+    title="PDF Generation API",  # API title
+    version="0.1.0",  # API version
+    description="A FastAPI application that generates PDFs from HTML and CSS content",  # API description
+    servers=[{"url": BASE_URL, "description": "Base API server"}]  # Server information
 )
 
-# Initialize a thread pool executor
+# Initialize a thread pool executor for concurrent execution
 executor = ThreadPoolExecutor(max_workers=5)
+
+# Request model for creating a PDF
+class CreatePDFRequest(BaseModel):
+    html_content: str  # HTML content for the PDF
+    css_content: str  # CSS content for styling the PDF
+    output_filename: str  # Filename for the generated PDF
 
 # Function to generate a PDF from provided HTML and CSS content
 def generate_pdf(html_content, css_content, output_path):
@@ -44,7 +48,7 @@ def generate_pdf(html_content, css_content, output_path):
 @app.post("/create")
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
     # Define the output path for the generated PDF
-    output_path = Path("/app/downloads") / f"{request.output_filename}.pdf"
+    output_path = Path("/app/downloads") / f"{request.output_filename}"
 
     # Start the background task to generate the PDF
     background_tasks.add_task(
@@ -56,8 +60,48 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     )
 
     # Return the URL where the PDF will be available
-    pdf_url = f"{BASE_URL}/downloads/{request.output_filename}.pdf"
+    pdf_url = f"{BASE_URL}/downloads/{request.output_filename}"
     return {"detail": "PDF generation started", "url": pdf_url}
 
-# Mount a static files directory at /downloads
+# Request model for converting URLs to PDFs
+class ConvertURLsRequest(BaseModel):
+    urls: List[str]  # List of URLs to convert to PDFs
+
+# Function to convert a URL to a PDF
+def convert_url_to_pdf(url: str, output_path: str):
+    """Fetch HTML from URL and convert it to a PDF file."""
+    try:
+        # Fetch HTML content from the URL
+        response = requests.get(url)
+        response.raise_for_status()  # Raise exception for bad requests
+        html_content = response.text
+        # Generate PDF from HTML content
+        HTML(string=html_content).write_pdf(output_path)
+    except Exception as e:
+        print(f"Failed to convert {url} to PDF: {str(e)}")  # Log error
+
+# Endpoint for converting URLs to PDFs
+@app.post("/convert_urls")
+async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks):
+    # Validate the number of URLs
+    if len(request.urls) > 5:
+        raise HTTPException(status_code=400, detail="Too many URLs provided. Please limit to 5.")
+
+    # Start background tasks to convert the URLs to PDFs
+    for url in request.urls:
+        url_path = urlparse(url).path
+        output_filename = f"{url_path.strip('/').split('/')[-1]}.pdf"
+        output_path = Path("/app/downloads") / output_filename
+        background_tasks.add_task(
+            executor.submit,
+            convert_url_to_pdf,
+            url=url,
+            output_path=output_path
+        )
+
+    # Return the URLs where the PDFs will be available
+    pdf_urls = [f"{BASE_URL}/downloads/{urlparse(url).path.strip('/').split('/')[-1]}.pdf" for url in request.urls]
+    return {"detail": "PDF generation started", "urls": pdf_urls}
+
+# Mount a static files directory at /downloads to serve generated PDFs
 app.mount("/downloads", StaticFiles(directory="/app/downloads"), name="downloads")
