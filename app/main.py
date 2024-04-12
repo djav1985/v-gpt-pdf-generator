@@ -13,7 +13,7 @@ import atexit
 from pdf_generator import generate_pdf
 from cleanup import delete_old_pdfs
 
-API_KEY = os.getenv("API_KEY", "default_api_key_if_none_provided")
+API_KEY = os.getenv("API_KEY", "")
 BASE_URL = os.getenv("BASE_URL", "http://localhost")
 
 api_key_header = APIKeyHeader(name="Authorization")
