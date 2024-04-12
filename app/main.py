@@ -1,10 +1,11 @@
 # Importing necessary modules and libraries
-from os import getenv
-from fastapi import FastAPI, HTTPException
+from concurrent.futures import ThreadPoolExecutor
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import pdfkit
-import asyncio
+from os import getenv
 from pydantic import BaseModel
 
 # Define your request model
@@ -24,8 +25,11 @@ app = FastAPI(
     servers=[{"url": BASE_URL, "description": "Base API server"}]
 )
 
+# Initialize a thread pool executor
+executor = ThreadPoolExecutor(max_workers=5)
+
 # Function to generate a PDF from provided HTML and CSS content
-async def generate_pdf(html_content, css_content, output_path, options=None):
+def generate_pdf(html_content, css_content, output_path, options=None):
     # Default PDF generation options
     default_options = {
         'page-size': 'Letter',
@@ -41,27 +45,30 @@ async def generate_pdf(html_content, css_content, output_path, options=None):
     if css_content and css_content.strip():
         html_content = f"<style>{css_content}</style>{html_content}"
 
-    # Generate the PDF using pdfkit and asyncio for non-blocking operation
+    # Generate the PDF using pdfkit
     try:
-        await asyncio.to_thread(pdfkit.from_string, html_content, output_path, options=default_options)
+        pdfkit.from_string(html_content, output_path, options=default_options)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint for creating a new PDF
 @app.post("/create")
-async def create_pdf(request: CreatePDFRequest):
+async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
     # Define the output path for the generated PDF
     output_path = Path("/app/downloads") / f"{request.output_filename}.pdf"
-    # Call the generate_pdf function to create the PDF
-    await generate_pdf(
+
+    # Start the background task to generate the PDF
+    background_tasks.add_task(
+        executor.submit,
+        generate_pdf,
         html_content=request.html_content,
         css_content=request.css_content,
         output_path=output_path
     )
 
-    # If the file does not exist after generation, raise a 404 error
-    if not output_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+    # Return the URL where the PDF will be available
+    pdf_url = f"{BASE_URL}/downloads/{request.output_filename}.pdf"
+    return {"detail": "PDF generation started", "url": pdf_url}
 
-    # Return the generated PDF as a FileResponse
-    return FileResponse(path=str(output_path), filename=f"{request.output_filename}.pdf", media_type='application/pdf')
+# Mount a static files directory at /downloads
+app.mount("/downloads", StaticFiles(directory="/app/downloads"), name="downloads")
