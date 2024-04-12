@@ -1,16 +1,15 @@
-# main.py
+
 
 import os
 import pdfkit
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks  # Core FastAPI and utility imports
-from starlette.responses import FileResponse, JSONResponse  # Correct imports from starlette for response handling
-from starlette.requests import Request
-from pydantic import BaseModel  # Import BaseModel for request body data validation
-from starlette.middleware.base import BaseHTTPMiddleware  # Middleware base class
-from apscheduler.schedulers.background import BackgroundScheduler  # Scheduler for tasks
-import atexit  # Handle cleanup operations on exit
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
-# Relative imports for local modules, ensure the directory structure supports this
+# Assuming pdf_generator and cleanup are in the same directory or correctly installed as packages
 from pdf_generator import generate_pdf
 from cleanup import delete_old_pdfs
 
@@ -18,19 +17,19 @@ from cleanup import delete_old_pdfs
 API_KEY = os.getenv("API_KEY", "default_api_key_if_none_provided")
 BASE_URL = os.getenv("BASE_URL", "http://localhost")
 
-# Initialize the FastAPI application
+# Initialize the FastAPI application with metadata
 app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="API for generating and managing PDFs",
-    servers=[{"url": BASE_URL, "description": "Base API server"}]
+    servers=[{"url": os.getenv("BASE_URL", "http://localhost"), "description": "Base API server"}]
 )
 
 @app.on_event("startup")
 def startup_event():
     api_key = os.getenv("API_KEY")
     print(f"API Key on startup: {api_key}")
-
+    
 # Setup a background scheduler for deleting old PDFs
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_old_pdfs, 'interval', days=1)
@@ -41,14 +40,14 @@ atexit.register(lambda: scheduler.shutdown())
 
 # Class for handling API key authentication
 class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request, call_next):
         # Define a list of routes that don't require authentication
         paths = ["/docs", "/openapi.json", "/redoc"]
         if request.url.path in paths:
             # Skip authentication for documentation and open API JSON
             return await call_next(request)
 
-        # API key validation as before
+        # API key validation
         api_key = request.headers.get('Authorization')
         if not api_key or api_key != os.getenv("API_KEY"):
             return JSONResponse(status_code=403, content={"message": "Invalid or missing API Key"})
@@ -58,7 +57,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 # Add the authentication middleware to the app
 app.add_middleware(AuthMiddleware)
 
-# Class for handling create PDF request data
+# Pydantic model to validate incoming data for the PDF creation
 class CreatePDFRequest(BaseModel):
     html_content: str
     css_content: str
@@ -74,7 +73,7 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
         css_content=request.css_content,
         output_path=output_path
     )
-    return {"message": "PDF creation started successfully", "download_url": f"{BASE_URL}/download/{request.output_filename}.pdf"}
+    return {"message": "PDF creation started successfully", "download_url": f"{request.url_for('download_pdf', filename=request.output_filename)}"}
 
 # Endpoint for downloading a created PDF
 @app.get("/download/{filename}")
@@ -82,4 +81,4 @@ async def download_pdf(filename: str):
     file_path = f"/app/downloads/{filename}.pdf"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(path=file_path, filename=f"{filename}.pdf", media_type='application/pdf')
+    return FileResponse(path=file_path, filename=filename, media_type='application/pdf')
