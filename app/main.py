@@ -1,9 +1,17 @@
 # Importing necessary modules and libraries
 from os import getenv
-from fastapi import FastAPI, HTTPException, FileResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pathlib import Path
 import pdfkit
 import asyncio
+from pydantic import BaseModel
+
+# Define your request model
+class CreatePDFRequest(BaseModel):
+    html_content: str
+    css_content: str
+    output_filename: str
 
 # Getting the base URL from environment variables. If not set, default to "http://localhost"
 BASE_URL = getenv("BASE_URL", "http://localhost")
@@ -12,7 +20,6 @@ BASE_URL = getenv("BASE_URL", "http://localhost")
 app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
-    # Updated description to accurately reflect the functionality of the API
     description="A FastAPI application that generates PDFs from HTML and CSS content",
     servers=[{"url": BASE_URL, "description": "Base API server"}]
 )
@@ -31,11 +38,14 @@ async def generate_pdf(html_content, css_content, output_path, options=None):
         default_options.update(options)
 
     # If CSS content is provided, prepend it to the HTML content
-    if css_content:
+    if css_content and css_content.strip():
         html_content = f"<style>{css_content}</style>{html_content}"
 
     # Generate the PDF using pdfkit and asyncio for non-blocking operation
-    await asyncio.to_thread(pdfkit.from_string, html_content, output_path, options=default_options)
+    try:
+        await asyncio.to_thread(pdfkit.from_string, html_content, output_path, options=default_options)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint for creating a new PDF
 @app.post("/create")
