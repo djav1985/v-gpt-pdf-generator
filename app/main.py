@@ -26,6 +26,11 @@ app = FastAPI(
     servers=[{"url": BASE_URL, "description": "Base API server"}]
 )
 
+@app.on_event("startup")
+def startup_event():
+    api_key = os.getenv("API_KEY")
+    print(f"API Key on startup: {api_key}")
+
 # Setup a background scheduler for deleting old PDFs
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_old_pdfs, 'interval', days=1)
