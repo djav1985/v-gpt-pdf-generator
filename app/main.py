@@ -1,6 +1,6 @@
 import os
 import pdfkit
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request  # Added Request here
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
@@ -8,6 +8,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
+# Assuming pdf_generator and cleanup are properly imported
 from pdf_generator import generate_pdf
 from cleanup import delete_old_pdfs
 
