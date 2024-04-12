@@ -1,19 +1,28 @@
 # main.py
 
-# Importing necessary modules and libraries
 import os
 import pdfkit
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, FileResponse
-from pydantic import BaseModel
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
-from .pdf_generator import generate_pdf  # Ensure correct import path
-from cleanup import delete_old_pdfs
-from apscheduler.schedulers.background import BackgroundScheduler
-import atexit
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks  # Core FastAPI and utility imports
+from starlette.responses import FileResponse, JSONResponse  # Correct imports from starlette for response handling
+from pydantic import BaseModel  # Import BaseModel for request body data validation
+from starlette.middleware.base import BaseHTTPMiddleware  # Middleware base class
+from apscheduler.schedulers.background import BackgroundScheduler  # Scheduler for tasks
+import atexit  # Handle cleanup operations on exit
 
-# Initialize the FastAPI app
+# Relative imports for local modules, ensure the directory structure supports this
+from .pdf_generator import generate_pdf
+from .cleanup import delete_old_pdfs
+
+# Initialize the FastAPI application
 app = FastAPI()
+
+# Setup a background scheduler for deleting old PDFs
+scheduler = BackgroundScheduler()
+scheduler.add_job(delete_old_pdfs, 'interval', days=1)
+scheduler.start()
+
+# Ensure that when the application exits, the scheduler is properly shutdown
+atexit.register(lambda: scheduler.shutdown())
 
 # Environment variables are now assumed to be set directly via Docker or another environment manager
 API_KEY = os.getenv("API_KEY", "default_api_key_if_none_provided")
@@ -30,12 +39,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 # Add the authentication middleware to the app
 app.add_middleware(AuthMiddleware)
-
-# Setup a background scheduler for deleting old PDFs
-scheduler = BackgroundScheduler()
-scheduler.add_job(delete_old_pdfs, 'interval', days=1)
-scheduler.start()
-atexit.register(lambda: scheduler.shutdown())
 
 # Class for handling create PDF request data
 class CreatePDFRequest(BaseModel):
