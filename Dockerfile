@@ -10,24 +10,27 @@ COPY ./app /app
 # Install any needed packages specified in app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Install wkhtmltopdf
+# Update the package list
 RUN apt-get update -y
 
 # Install the dependencies
-RUN apt-get install -y libssl-dev --no-install-recommends wget xz-utils fontconfig libxrender1 xfonts-75dpi xfonts-base
+RUN apt-get install -y --no-install-recommends wget xz-utils fontconfig libxrender1 xfonts-75dpi xfonts-base
 
-# Download the Ubuntu package instead of the Debian one
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.buster_amd64.deb
+# Download wkhtmltopdf
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.bullseye_amd64.deb
 
-RUN dpkg -i wkhtmltox_0.12.5-1.buster_amd64.deb
+# Install wkhtmltopdf
+RUN dpkg -i wkhtmltox_0.12.6.1-2.bullseye_amd64.deb
 
+# Remove unnecessary packages
 RUN apt-get remove -y wget xz-utils
 
+# Auto remove unnecessary dependencies
 RUN apt-get autoremove -y
 
+# Clean up
 RUN rm -rf /var/lib/apt/lists/*
-
-RUN rm wkhtmltox_0.12.5-1.buster_amd64.deb
+RUN rm wkhtmltox_0.12.6.1-2.bullseye_amd64.deb
 
 # Run the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
