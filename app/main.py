@@ -35,6 +35,13 @@ scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
 
+class RequestLogMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        body = await request.body()
+        print(f"Received request at {request.url} with body: {body.decode()}")
+        response = await call_next(request)
+        return response
+        
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         paths = ["/docs", "/openapi.json", "/redoc"]
