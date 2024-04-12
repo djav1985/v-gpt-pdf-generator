@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 RUN apt-get update -y
 
 # Install the dependencies
-RUN apt-get install -y libssl1.1 --no-install-recommends wget xz-utils fontconfig libxrender1 xfonts-75dpi xfonts-base
+RUN apt-get install -y libssl-dev --no-install-recommends wget xz-utils fontconfig libxrender1 xfonts-75dpi xfonts-base
 
 # Download the Ubuntu package instead of the Debian one
 RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.buster_amd64.deb
