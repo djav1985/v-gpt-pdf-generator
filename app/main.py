@@ -117,7 +117,7 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
     return {"detail": "PDF generation started", "urls": pdf_urls}
 
 # Root endpoint serving index.html directly
-@app.get("/")
+@app.get("/", include_in_schema=False)
 async def root():
     return FileResponse("/app/public/index.html")
 
