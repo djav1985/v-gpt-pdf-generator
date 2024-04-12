@@ -15,17 +15,17 @@ jobs:
         uses: actions/checkout@v3  # Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v1
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USER }}  # Your Docker Hub username
           password: ${{ secrets.DOCKERHUB_TOKEN }}  # Your Docker Hub token
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v3
         with:
           images: vontainment/gpt-pdf-generator  # Change to your Docker image name
           tags: |
@@ -35,7 +35,7 @@ jobs:
             type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/tags/') }}
 
       - name: Build and push
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v2
         with:
           context: .  # Directory to use as context for Docker build (your project root)
           file: Dockerfile
