@@ -1,10 +1,8 @@
-
-
 import os
 import pdfkit
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
@@ -22,14 +20,14 @@ app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="API for generating and managing PDFs",
-    servers=[{"url": os.getenv("BASE_URL", "http://localhost"), "description": "Base API server"}]
+    servers=[{"url": BASE_URL, "description": "Base API server"}]
 )
 
 @app.on_event("startup")
 def startup_event():
     api_key = os.getenv("API_KEY")
     print(f"API Key on startup: {api_key}")
-    
+
 # Setup a background scheduler for deleting old PDFs
 scheduler = BackgroundScheduler()
 scheduler.add_job(delete_old_pdfs, 'interval', days=1)
@@ -49,7 +47,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # API key validation
         api_key = request.headers.get('Authorization')
-        if not api_key or api_key != os.getenv("API_KEY"):
+        if not api_key or api_key != API_KEY:
             return JSONResponse(status_code=403, content={"message": "Invalid or missing API Key"})
         
         return await call_next(request)
@@ -59,12 +57,16 @@ app.add_middleware(AuthMiddleware)
 
 # Pydantic model to validate incoming data for the PDF creation
 class CreatePDFRequest(BaseModel):
-    html_content: str
-    css_content: str
-    output_filename: str
+    html_content: str = Field(..., example="<html><body><p>Hello World</p></body></html>")
+    css_content: str = Field(..., example="p { color: red; }")
+    output_filename: str = Field(..., example="example.pdf")
+
+class CreatePDFResponse(BaseModel):
+    message: str
+    download_url: str
 
 # Endpoint for creating a new PDF
-@app.post("/create")
+@app.post("/create", response_model=CreatePDFResponse)
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
     output_path = f"/app/downloads/{request.output_filename}.pdf"
     background_tasks.add_task(
@@ -73,10 +75,21 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
         css_content=request.css_content,
         output_path=output_path
     )
-    return {"message": "PDF creation started successfully", "download_url": f"{request.url_for('download_pdf', filename=request.output_filename)}"}
+    return {
+        "message": "PDF creation started successfully", 
+        "download_url": f"{BASE_URL}/download/{request.output_filename}"
+    }
 
 # Endpoint for downloading a created PDF
-@app.get("/download/{filename}")
+@app.get("/download/{filename}", responses={
+    200: {
+        "content": {"application/pdf": {}},
+        "description": "Returns the requested PDF file."
+    },
+    404: {
+        "description": "PDF file not found"
+    }
+})
 async def download_pdf(filename: str):
     file_path = f"/app/downloads/{filename}.pdf"
     if not os.path.exists(file_path):
