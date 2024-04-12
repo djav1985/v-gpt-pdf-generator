@@ -4,9 +4,9 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
-import pdfkit
 from os import getenv
 from pydantic import BaseModel
+from weasyprint import HTML, CSS
 
 # Define your request model
 class CreatePDFRequest(BaseModel):
@@ -29,25 +29,14 @@ app = FastAPI(
 executor = ThreadPoolExecutor(max_workers=5)
 
 # Function to generate a PDF from provided HTML and CSS content
-def generate_pdf(html_content, css_content, output_path, options=None):
-    # Default PDF generation options
-    default_options = {
-        'page-size': 'Letter',
-        'encoding': "UTF-8",
-        'custom-header': [('Accept-Encoding', 'gzip')],
-        'no-outline': None
-    }
-    # If custom options are provided, update the defaults with these
-    if options:
-        default_options.update(options)
-
+def generate_pdf(html_content, css_content, output_path):
     # If CSS content is provided, prepend it to the HTML content
     if css_content and css_content.strip():
         html_content = f"<style>{css_content}</style>{html_content}"
 
-    # Generate the PDF using pdfkit
+    # Generate the PDF using WeasyPrint
     try:
-        pdfkit.from_string(html_content, output_path, options=default_options)
+        HTML(string=html_content).write_pdf(output_path, stylesheets=[CSS(string=css_content)])
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
