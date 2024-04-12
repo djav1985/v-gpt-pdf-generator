@@ -1,6 +1,6 @@
-fastapi==0.78.0
-uvicorn==0.17.6
-gunicorn==20.1.0
-WeasyPrint==53.3
-pydantic==1.11.0
-requests==2.26.0
+fastapi==0.110.1
+uvicorn==0.29.6
+gunicorn==21.2.0
+WeasyPrint==61.2
+pydantic==2.6.1
+requests==2.31.0
