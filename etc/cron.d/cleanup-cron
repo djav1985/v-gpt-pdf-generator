@@ -1,0 +1,2 @@
+# Example of a crontab file to run cleanup.py every day at 2 AM
+0 2 * * * python /app/cleanup.py >> /var/log/cron.log 2>&1

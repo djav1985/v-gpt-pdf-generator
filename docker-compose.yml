@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  app:
+    container_name: pdf-generator
+    image: vontainment/gpt-pdf-generator:latest  # Use your appropriate image
+    hostname: pdf-generator
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "8075:80"  # Map port 80 of the container to port 80 on the host
+    environment:
+      - BASE_URL=https://pdf.hugev.xyz  # Set this to your actual base URL
+      - API_KEY=your_api_key_here  # Replace with your actual API key
+    volumes:
+      - downloads:/app/downloads  # Ensure downloads directory is persistent
+
+volumes:
+   downloads:
