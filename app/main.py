@@ -2,6 +2,8 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks  # FastAPI framework components
 from fastapi.responses import FileResponse  # Response class for serving files
 from fastapi.staticfiles import StaticFiles  # Serve static files
+from fastapi import FastAPI, HTTPException, Security, Depends, BackgroundTasks
+from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
 from pathlib import Path  # Path manipulation
 from os import getenv  # Environment variables
 from pydantic import BaseModel  # Data validation
@@ -14,6 +16,17 @@ import requests  # HTTP requests
 
 # Base URL for the API server
 BASE_URL = getenv("BASE_URL", "http://localhost")
+
+# Optional API key from the environment
+API_KEY = getenv("API_KEY")
+bearer_scheme = HTTPBearer(auto_error=False)  # Avoid auto error to handle no Authorization header gracefully
+
+async def get_api_key(credentials: HTTPAuthorizationCredentials = Security(bearer_scheme)):
+    if API_KEY:  # Check if API_KEY is set
+        if not credentials or credentials.credentials != API_KEY:
+            raise HTTPException(status_code=403, detail="Invalid or missing API key")
+    # If API_KEY is not set, or if the provided credentials are valid, allow access
+    return credentials.credentials if credentials else None
 
 # FastAPI application instance
 app = FastAPI(
@@ -45,8 +58,8 @@ def generate_pdf(html_content, css_content, output_path):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint for creating a new PDF
-@app.post("/create", operation_id="create_pdf)
-async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks):
+@app.post("/create", operation_id="create_pdf")
+async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
     # Define the output path for the generated PDF
     output_path = Path("/app/downloads") / f"{request.output_filename}"
 
@@ -82,7 +95,7 @@ def convert_url_to_pdf(url: str, output_path: str):
 
 # Endpoint for converting URLs to PDFs
 @app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
-async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks):
+async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
     # Validate the number of URLs
     if len(request.urls) > 5:
         raise HTTPException(status_code=400, detail="Too many URLs provided. Please limit to 5.")
@@ -103,5 +116,13 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
     pdf_urls = [f"{BASE_URL}/downloads/{urlparse(url).path.strip('/').split('/')[-1]}.pdf" for url in request.urls]
     return {"detail": "PDF generation started", "urls": pdf_urls}
 
+# Root endpoint serving index.html directly
+@app.get("/")
+async def root():
+    return FileResponse("app/public/index.html")
+
 # Mount a static files directory at /downloads to serve generated PDFs
 app.mount("/downloads", StaticFiles(directory="/app/downloads"), name="downloads")
+
+# Serve static files (HTML, CSS, JS, images)
+app.mount("/static", StaticFiles(directory="app/public"), name="static")
