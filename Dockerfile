@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y cron
 COPY ./app /app
 
 # Install any needed packages specified in app/requirements.txt
-RUN pip install --no-cache-dir -r app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Make sure the cron job file is already created in the correct directory
 # Assume cleanup-cron is already placed in /etc/cron.d/cleanup-cron within the image or base image
