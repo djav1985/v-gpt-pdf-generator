@@ -14,8 +14,17 @@ import atexit  # Handle cleanup operations on exit
 from pdf_generator import generate_pdf
 from cleanup import delete_old_pdfs
 
+# Environment variables are now assumed to be set directly via Docker or another environment manager
+API_KEY = os.getenv("API_KEY", "default_api_key_if_none_provided")
+BASE_URL = os.getenv("BASE_URL", "http://localhost")
+
 # Initialize the FastAPI application
-app = FastAPI()
+app = FastAPI(
+    title="PDF Generation API",
+    version="0.1.0",
+    description="API for generating and managing PDFs",
+    servers=[{"url": BASE_URL, "description": "Base API server"}]
+)
 
 # Setup a background scheduler for deleting old PDFs
 scheduler = BackgroundScheduler()
@@ -24,10 +33,6 @@ scheduler.start()
 
 # Ensure that when the application exits, the scheduler is properly shutdown
 atexit.register(lambda: scheduler.shutdown())
-
-# Environment variables are now assumed to be set directly via Docker or another environment manager
-API_KEY = os.getenv("API_KEY", "default_api_key_if_none_provided")
-BASE_URL = os.getenv("BASE_URL", "http://localhost")
 
 # Class for handling API key authentication
 class AuthMiddleware(BaseHTTPMiddleware):
