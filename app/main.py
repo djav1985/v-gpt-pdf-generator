@@ -44,9 +44,9 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         return response
         
 class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
+    async def dispatch(self, request: Request, call_next):
         paths = ["/docs", "/openapi.json", "/redoc"]
-        if request.url.path in paths:
+        if request.url.path in those:
             return await call_next(request)
         api_key = request.headers.get('Authorization')
         if not api_key or api_key != API_KEY:
