@@ -14,11 +14,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3  # Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3  # Sets up QEMU to support multiple architectures
-
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3  # Sets up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -41,11 +38,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .  # Directory to use as context for Docker build (your project root)
-          platforms: ${{ startsWith(github.ref, 'refs/tags/') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
-          build-args: |
-            COMMIT_SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          file: Dockerfile
           push: true  # Pushes the image to Docker Hub
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha  # Enable caching of layers
-          cache-to: type=gha,mode=max  # Save cache after build
+          build-args: |
+            COMMIT_SHA=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
+          cache-from: type=registry,ref=${{ steps.meta.outputs.tags }}
+          cache-to: type=inline,mode=max
