@@ -1,6 +1,6 @@
 fastapi==0.110.1
 uvicorn==0.29.0
-gunicorn==21.2.0
+gunicorn==22.0.0
 WeasyPrint==61.2
 pydantic==2.6.1
 requests==2.31.0
