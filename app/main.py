@@ -1,17 +1,21 @@
 # Importing necessary modules and libraries
+import os
+import requests  # HTTP requests
+import time
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks  # FastAPI framework components
 from fastapi.responses import FileResponse, JSONResponse  # Response class for serving files
 from fastapi.staticfiles import StaticFiles  # Serve static files
 from fastapi import FastAPI, HTTPException, Security, Depends, BackgroundTasks
 from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
+
 from pathlib import Path  # Path manipulation
-from os import getenv  # Environment variables
 from pydantic import BaseModel  # Data validation
 from weasyprint import HTML, CSS  # PDF generation
 from urllib.parse import urlparse  # URL parsing
 from typing import List  # Type hinting
 from concurrent.futures import ThreadPoolExecutor  # Asynchronous execution
-import requests  # HTTP requests
+
 
 # Importing local modules
 from functions import load_configuration, generate_pdf, convert_url_to_pdf
@@ -84,6 +88,7 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
     if len(request.urls) > 5:
         raise HTTPException(status_code=400, detail="Too many URLs provided. Please limit to 5.")
 
+    files_and_paths = []
     # Start background tasks to convert the URLs to PDFs
     for url in request.urls:
         url_path = urlparse(url).path
@@ -95,9 +100,33 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
             url=url,
             output_path=output_path
         )
+        files_and_paths.append((output_path, output_filename))
 
-    # Return the PDF file directly in the response
-    return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
+    # Check if all files exist or wait until timeout
+    start_time = time.time()
+    all_files_ready = False
+    while time.time() - start_time < 30:  # Timeout after 30 seconds
+        if all(path.exists() for path, _ in files_and_paths):
+            all_files_ready = True
+            break
+        await asyncio.sleep(1)
+
+    if not all_files_ready:
+        # Not all files are ready, return URLs for each file
+        response_content = {
+            "detail": "PDF generation is still in progress. Please check the URLs after some time.",
+            "files": []
+        }
+        for _, output_filename in files_and_paths:
+            pdf_url = f"{BASE_URL}/downloads/{output_filename}"
+            response_content["files"].append({"filename": output_filename, "url": pdf_url})
+        return JSONResponse(status_code=202, content=response_content)
+
+    # If all files are ready, return them (for simplicity, assuming only one PDF return is intended)
+    # In practice, you might want to modify this to handle multiple file responses appropriately
+    # For example, returning a ZIP of all PDFs or a list of download links
+    output_path, output_filename = files_and_paths[0]  # Simplified for the first file only
+    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
 # Root endpoint serving index.html directly
 @app.get("/", include_in_schema=False)
