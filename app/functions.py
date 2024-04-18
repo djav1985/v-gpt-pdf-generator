@@ -14,7 +14,7 @@ class AppConfig:
         self.API_KEY = os.getenv("API_KEY")
         self.KB_API_KEY = os.getenv("KB_API_KEY")
         self.KB_BASE_URL = os.getenv("KB_BASE_URL")
-        self.DIFY_INTEGRATION = os.getenv("DIFY_INTEGRATION")
+        self.DIFY = os.getenv("DIFY")
         self.unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif', '.ico', '.svg', '.webp',
                                     '.heif', '.heic', '.css', '.js', '.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf',
                                     '.docx', '.xlsx', '.pptx', '.zip', '.rar', '.7z')
