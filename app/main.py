@@ -84,7 +84,7 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     while not output_path.exists():
         await asyncio.sleep(1)
         if time.time() - start_time > 5:
-            pdf_url = f"{BASE_URL}/downloads/{request.output_filename}"
+            pdf_url = f"{config.BASE_URL}/downloads/{request.output_filename}"
             return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
     return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
@@ -118,7 +118,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     while not output_path.exists():
         await asyncio.sleep(1)
         if time.time() - start_time > 10:
-            pdf_url = f"{BASE_URL}/downloads/{output_filename}"
+            pdf_url = f"{config.BASE_URL}/downloads/{output_filename}"
             return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
