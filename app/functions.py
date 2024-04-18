@@ -146,7 +146,7 @@ async def scrape_site(url: str, dataset_id: str):
                 soup = BeautifulSoup(html_content, 'html.parser')
                 all_text = []
                 for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
-                    if not tag.find_parent(['footer', 'aside']):
+                    if not tag.find_parent(['footer', 'aside', 'nav', 'form']):
                         text = tag.get_text(strip=True)
                         all_text.append(text)
 
