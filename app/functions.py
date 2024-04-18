@@ -151,7 +151,7 @@ async def scrape_site(url: str, dataset_id: str):
                         all_text.append(text)
 
                 if all_text:
-                    await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
+                    await submit_to_kb(current_url, "\n\n".join(all_text), dataset_id, session)
 
                 for link in soup.find_all('a', href=True):
                     href = urljoin(current_url, link['href'])
