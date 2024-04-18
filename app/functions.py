@@ -30,34 +30,34 @@ async def generate_pdf(html_content: str, css_content: str, output_path: Path):
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
-
-# Async function to fetch HTML content using aiohttp
-async def fetch_html_content(url):
-    try:
-        async with ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    return await response.text()
-                else:
-                    raise HTTPException(status_code=response.status, detail="Failed to fetch HTML content")
-    except Exception as e:
-        print(f"Error fetching HTML content: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching HTML content: {str(e)}")
-
-# Async function to convert a URL to PDF
+        
 async def convert_url_to_pdf_task(url: str, output_path: str):
     try:
-        html_content = await fetch_html_content(url)
-        if html_content:
-            soup = BeautifulSoup(html_content, 'html.parser')
-            for tag in soup(['footer', 'aside']):
-                tag.decompose()
-            extracted_content = "".join(str(tag) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']))
-            await generate_pdf(extracted_content, "body { font-family: Arial; color: #333; }", Path(output_path))
-        else:
-            raise HTTPException(status_code=404, detail="No HTML content found to convert to PDF")
+        # Initiate an HTTP session and fetch the HTML content
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status != 200:
+                    print(f"Failed to fetch URL: {url}, status code: {response.status}")
+                    raise HTTPException(status_code=response.status, detail="Failed to fetch HTML content")
+
+                html_content = await response.text()
+
+                # Process the HTML content if successfully retrieved
+                if html_content:
+                    soup = BeautifulSoup(html_content, 'html.parser')
+                    for tag in soup(['footer', 'aside']):
+                        tag.decompose()
+                    extracted_content = "".join(str(tag) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']))
+
+                    # Convert extracted content to PDF
+                    css = CSS(string="body { font-family: Arial; color: #333; }")
+                    output_file_path = Path(output_path)
+                    HTML(string=extracted_content).write_pdf(target=output_file_path, stylesheets=[css])
+                else:
+                    print("No HTML content found to convert to PDF")
+                    raise HTTPException(status_code=404, detail="No HTML content found to convert to PDF")
     except Exception as e:
-        print(f"Error converting URL to PDF: {str(e)}")
+        print(f"Error converting URL to PDF: {url}, error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error converting URL to PDF: {str(e)}")
 
 # Function to clean up the downloads folder
