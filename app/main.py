@@ -140,10 +140,13 @@ if config.DIFY:
                 if response.status != 200:
                     raise HTTPException(status_code=response.status, detail="API request failed to create the KB.")
         return JSONResponse(status_code=200, content={"message": f"Knowledge Base {request.name} created successfully."})
-
+        
     @app.post("/kb-scraper/")
-    async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
-        background_tasks.add_task(scrape_site, request.website_url, api_key, request.dataset_id)
+    async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+        if not credentials or credentials.credentials != config.API_KEY:
+             raise HTTPException(status_code=403, detail="Invalid or missing API key")
+        # Add task with correct parameters
+        background_tasks.add_task(scrape_site, request.website_url, request.dataset_id)
         return {"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."}
 
 # Root endpoint serving index.html directly
