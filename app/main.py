@@ -47,7 +47,7 @@ app = FastAPI(
 class CreatePDFRequest(BaseModel):
     html_content: str = Field(..., description="HTML content that will be converted into a PDF document.")
     css_content: Optional[str] = Field(default="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }", description="Optional CSS content for styling the HTML.")
-    output_filename: Optional[str] = Field(..., description="Optional filename, use - for spaces and do not include the extension.")
+    output_filename: Optional[str] = Field(default=None, description="Optional filename, use - for spaces and do not include the extension.")
 
 # Request model for converting a single URL to PDF
 class ConvertURLRequest(BaseModel):
