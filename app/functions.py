@@ -1,12 +1,14 @@
 # Importing required libraries and modules
 import os
 import requests
+import shutil
+
+from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
 from fastapi import HTTPException
 from bs4 import BeautifulSoup
 
 # Function to convert a URL to a PDF
-
 def convert_url_to_pdf(url: str, output_path: str):
     try:
         # Fetch HTML content from the URL
@@ -37,6 +39,16 @@ def convert_url_to_pdf(url: str, output_path: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to convert URL to PDF: {str(e)}")
 
+def cleanup_downloads_folder(folder_path: str):
+    now = datetime.now()
+    age_limit = now - timedelta(days=7)
+
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path):
+            file_mod_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+            if file_mod_time < age_limit:
+                os.remove(file_path)
 
 # Load configuration from environment variables
 def load_configuration():

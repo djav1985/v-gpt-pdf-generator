@@ -21,11 +21,7 @@ from pydantic import BaseModel, Field
 from weasyprint import HTML, CSS
 
 # Importing local modules
-from functions import load_configuration, generate_pdf, convert_url_to_pdf
-
-
-# Importing local modules
-from functions import load_configuration, generate_pdf, convert_url_to_pdf
+from functions import load_configuration, generate_pdf, convert_url_to_pdf, cleanup_downloads_folder
 
 # Load configuration on startup
 BASE_URL, API_KEY = load_configuration()
@@ -66,6 +62,9 @@ class ConvertURLsRequest(BaseModel):
 # Endpoint for creating a new PDF
 @app.post("/create", operation_id="create_pdf")
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
+
+    background_tasks.add_task(cleanup_downloads_folder, "/app/downloads/")
+
     # Default CSS
     default_css = "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }"
 
@@ -100,6 +99,9 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
 # Endpoint for converting URLs to PDFs
 @app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
 async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
+
+    background_tasks.add_task(cleanup_downloads_folder, "/app/downloads/")
+
     # Split the string of URLs into a list
     url_list = request.urls.split(',')
 
