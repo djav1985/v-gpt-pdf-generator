@@ -105,49 +105,54 @@ async def fetch_url(current_url, session):
         return None
 
 # Scrape_site function assuming session management is internal to the function
-async def scrape_site(initial_url, session, dataset_id):
+async def scrape_site(url: str, dataset_id: str):
     print("Scraping site started...")
-    initial_parsed_url = urlparse(initial_url)
-    initial_domain = initial_parsed_url.netloc
-    queue = set([initial_url])
-    visited = set()
+    try:
+        async with aiohttp.ClientSession() as session:
+            initial_parsed_url = urlparse(url)
+            initial_domain = initial_parsed_url.netloc
+            queue = set([url])
+            visited = set()
 
-    while queue:
-        current_url = queue.pop()
-        if current_url in visited:
-            continue
-        visited.add(current_url)
+            while queue:
+                current_url = queue.pop()
+                if current_url in visited:
+                    continue
+                visited.add(current_url)
 
-        parsed_url = urlparse(current_url)
-        current_domain = parsed_url.netloc
+                parsed_url = urlparse(current_url)
+                current_domain = parsed_url.netloc
 
-        # Check if the domain matches exactly; skip subdomains and external domains
-        if current_domain != initial_domain:
-            print(f"Skipping subdomain or external domain: {current_url}")
-            continue
+                # Ensure only the same domain is scraped, ignoring subdomains
+                if current_domain != initial_domain:
+                    print(f"Skipping subdomain or external domain: {current_url}")
+                    continue
 
-        html_content = await fetch_url(current_url, session)
-        if html_content is None:
-            print(f"Skipping URL due to load failure: {current_url}")
-            continue
+                html_content = await fetch_url(current_url, session)
+                if html_content is None:
+                    print(f"Skipping URL due to load failure: {current_url}")
+                    continue
 
-        soup = BeautifulSoup(html_content, 'html.parser')
-        all_text = []
-        for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
-            if not tag.find_parent(['footer', 'aside']):
-                text = tag.get_text(strip=True)
-                all_text.append(text)
+                soup = BeautifulSoup(html_content, 'html.parser')
+                all_text = []
+                for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
+                    if not tag.find_parent(['footer', 'aside']):
+                        text = tag.get_text(strip=True)
+                        all_text.append(text)
 
-        if all_text:
-            await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
+                if all_text:
+                    await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
 
-        # Add new links to the queue, excluding those with the domain in query parameters
-        for link in soup.find_all('a', href=True):
-            href = urljoin(current_url, link['href'])
-            href_parsed = urlparse(href)
-            # Ensure the link does not have the domain in any query parameters and matches the exact domain
-            if href_parsed.netloc == initial_domain and initial_domain not in href_parsed.query:
-                if not any(href.endswith(ext) for ext in config.unwanted_extensions):
-                    queue.add(href)
+                # Process links within the page
+                for link in soup.find_all('a', href=True):
+                    href = urljoin(current_url, link['href'])
+                    href_parsed = urlparse(href)
+                    if href_parsed.netloc == initial_domain and initial_domain not in href_parsed.query:
+                        if not any(href.endswith(ext) for ext in config.unwanted_extensions):
+                            queue.add(href)
+
+    except Exception as e:
+        print(f"Error during site scraping: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error during site scraping: {str(e)}")
 
     print("Scraping site completed.")
