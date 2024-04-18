@@ -44,6 +44,7 @@ def convert_url_to_pdf(url: str, output_path: str):
         HTML(string=modified_html).write_pdf(output_path, stylesheets=[CSS(string=default_css)])
     except:
         pass
+
 # This function cleans up the downloads folder by removing files older than 7 days.
 def cleanup_downloads_folder(folder_path: str):
     try:
@@ -64,6 +65,14 @@ def should_skip_url(href):
                            '.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf', '.docx',
                            '.xlsx', '.pptx', '.zip', '.rar', '.7z')
     return href.endswith(unwanted_extensions)
+
+async def fetch_url(session, url):
+    # Placeholder for fetch_url function
+    async with session.get(url) as response:
+        if response.status == 200:
+            return await response.text()
+        else:
+            return None
 
 async def scrape_site(initial_url, session):
     print("Scraping site started...")
