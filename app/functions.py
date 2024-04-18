@@ -62,6 +62,48 @@ def cleanup_downloads_folder(folder_path: str):
                 os.remove(file_path)
     except Exception as e:
         print("Cleanup error:", e)
+        
+async def fetch_url(current_url, session, unwanted_extensions):
+    async with session.get(current_url) as response:
+        if response.status == 200:
+            if current_url.endswith(unwanted_extensions):
+                return None
+            return await response.text()
+        else:
+            return None
+
+async def scrape_site(initial_url, session, unwanted_extensions):
+    print("Scraping site started...")
+    queue = set([initial_url])
+    visited = set()
+    base_domain = urlparse(initial_url).netloc
+    try:
+        while queue:
+            current_url = queue.pop()
+            print("Current URL:", current_url)
+            if current_url in visited:
+                continue
+            visited.add(current_url)
+            print("Visiting URL:", current_url)
+            html_content = await fetch_url(current_url, session,  unwanted_extensions)
+            if html_content is None:
+                print("HTML content is None for URL:", current_url)
+                continue
+            soup = BeautifulSoup(html_content, 'html.parser')
+            for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
+                if not tag.find_parent(['footer', 'aside']):
+                    text = tag.get_text(strip=True) + '\n'
+                    yield current_url, text
+            # Add new pages to the queue
+            for link in soup.find_all('a', href=True):
+                href = urljoin(current_url, link['href'])
+                if href.startswith('http') and base_domain in href and href not in visited:
+                    if not href.endswith(unwanted_extensions):
+                        print("Adding URL to queue:", href)
+                        queue.add(href)
+    except Exception as e:
+        print("Exception occurred during scraping:", e)
+        pass  # Silently ignore any errors
 
 # Async function to submit data to KB API
 async def submit_to_kb(url, text, dataset_id, session):
