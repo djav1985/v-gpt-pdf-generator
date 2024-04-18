@@ -14,10 +14,10 @@ from concurrent.futures import ThreadPoolExecutor  # Asynchronous execution
 import requests  # HTTP requests
 
 # Importing local modules
-from functions import  load_configuration, generate_pdf, convert_url_to_pdf
+from functions import load_configuration, generate_pdf, convert_url_to_pdf
 
 # Load configuration on startup
-BASE_URL, API_KEY, accounts = load_configuration()
+BASE_URL, API_KEY = load_configuration()
 
 # Setup the bearer token authentication scheme
 bearer_scheme = HTTPBearer(auto_error=False)
