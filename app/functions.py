@@ -26,7 +26,7 @@ config = AppConfig()
 # PDF generation tasks
 async def generate_pdf(html_content: str, css_content: str, output_path: Path):
     try:
-        css = CSS(string=css_content) if css_content else CSS(string="body { font-family: Arial; }")
+        css = CSS(string=css_content) if css_content else CSS(string="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }")
         HTML(string=html_content).write_pdf(target=output_path, stylesheets=[css])
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
@@ -55,7 +55,7 @@ async def convert_url_to_pdf_task(url: str, output_path: str):
                 extracted_content = ''.join(str(tag) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']))
 
                 # Convert extracted content to PDF
-                css = CSS(string="body { font-family: Arial; color: #333; }")
+                css = CSS(string="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }")
                 HTML(string=extracted_content).write_pdf(target=output_path, stylesheets=[css])
             else:
                 print("No HTML content found to convert to PDF")

@@ -8,7 +8,7 @@ import aiohttp
 
 from aiohttp import ClientSession
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin, urlunparse
 from typing import List, Optional
 from datetime import datetime
 
@@ -89,20 +89,26 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
 # Endpoint for converting URLs to PDFs
 @app.post("/convert_urls", operation_id="url_to_pdf")
 async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
-
-    background_tasks.add_task(cleanup_downloads_folder, "/app/downloads/")
-
-    # Fetch the URL from the request
     url = request.url.strip()
 
+    # Clean the URL by removing query parameters and fragments
+    parsed_url = urlparse(url)
+    clean_url = urlunparse(parsed_url._replace(query="", fragment=""))
+
+    # Generate a sanitized filename from the cleaned URL's path
+    filename_base = parsed_url.path.strip('/').split('/')[-1]
+    # Convert underscores to hyphens, retain hyphens, and remove other non-alphanumeric characters except for periods
+    filename_base = re.sub(r'[^a-zA-Z0-9\-\.]', '-', filename_base)  # Replace non-allowed characters with hyphens
+    filename_base = re.sub(r'[_]+', '-', filename_base)  # Convert any underscores to hyphens
+
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-    output_filename = f"url-{datetime_suffix}.pdf"
+    output_filename = f"{filename_base[:-4]}-{datetime_suffix}.pdf"
     output_path = Path("/app/downloads") / output_filename
 
     # Start background task to convert the URL to PDF
     background_tasks.add_task(
         convert_url_to_pdf_task,
-        url=url,
+        url=clean_url,
         output_path=output_path
     )
 
