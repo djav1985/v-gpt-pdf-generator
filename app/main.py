@@ -45,7 +45,7 @@ app = FastAPI(
 
 # Request model for creating a PDF
 class CreatePDFRequest(BaseModel):
-    html_content: str = Field(..., description="HTML content that will be converted into a PDF document.")
+    html_content: str = Field(..., description="HTML content that will be converted into a PDF document. You can include #ID's, .Classes and then style them by submitting CSS to the CSS_content parameter. You can also include Images using <img> tags with absolute urls.")
     css_content: Optional[str] = Field(default="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }", description="Optional CSS content for styling the HTML.")
     output_filename: Optional[str] = Field(default=None, description="Optional filename, use - for spaces and do not include the extension.")
 
