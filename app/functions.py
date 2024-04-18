@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
 from fastapi import HTTPException, BackgroundTasks
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urlunparse
 
 class AppConfig:
     def __init__(self):
@@ -74,28 +74,30 @@ def cleanup_downloads_folder(folder_path: str):
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
 
 async def submit_to_kb(url, text, dataset_id, session):
+    # Parse the URL and clean it by removing query parameters and fragments
+    parsed_url = urlparse(url)
+    clean_url = urlunparse(parsed_url._replace(query="", fragment=""))
+
     api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
     headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
-    payload = {"name": url, "text": text, "indexing_technique": "high_quality","process_rule": { "mode": "automatic"}}
+    payload = {"name": clean_url,"text": text,"indexing_technique": "high_quality","process_rule": { "mode": "automatic"}}
+
     try:
         async with session.post(api_url, headers=headers, json=payload) as response:
             if response.status != 200:
                 response_text = await response.text()
-                print(f"Failed to submit data to KB, status code: {response.status}, url: {url}, response: {response_text}")
+                print(f"Failed to submit data to KB, status code: {response.status}, url: {clean_url}, response: {response_text}")
                 # Optionally, handle or log the error locally instead of raising an HTTPException
-                return {"success": False, "error": f"Failed to submit data to KB: {response.status}"}
+                return {"success": False, "error": f"Failed to submit data to KB: {response.status}, response: {response_text}"}
             return {"success": True}
     except Exception as e:
-        print(f"Exception when submitting to KB: {url}, error: {str(e)}")
+        print(f"Exception when submitting to KB: {clean_url}, error: {str(e)}")
         return {"success": False, "error": f"Exception when submitting to KB: {str(e)}"}
-
 
 async def fetch_url(current_url, session):
     try:
         async with session.get(current_url) as response:
-            if response.status == 200:
-                if current_url.endswith(config.unwanted_extensions):
-                    return None
+            if response.status == 200 and not current_url.endswith(config.unwanted_extensions):
                 return await response.text()
             else:
                 print(f"Failed to fetch URL: {current_url}, status code: {response.status}")
@@ -104,7 +106,6 @@ async def fetch_url(current_url, session):
         print(f"Exception fetching URL: {current_url}, error: {str(e)}")
         return None
 
-# Scrape_site function assuming session management is internal to the function
 async def scrape_site(url: str, dataset_id: str):
     print("Scraping site started...")
     try:
@@ -116,21 +117,19 @@ async def scrape_site(url: str, dataset_id: str):
 
             while queue:
                 current_url = queue.pop()
-                if current_url in visited:
+                if current_url in visited or '#' in current_url or '?' in current_url:
                     continue
                 visited.add(current_url)
 
                 parsed_url = urlparse(current_url)
                 current_domain = parsed_url.netloc
 
-                # Ensure only the same domain is scraped, ignoring subdomains
-                if current_domain != initial_domain:
-                    print(f"Skipping subdomain or external domain: {current_url}")
+                if current_domain != initial_domain or parsed_url.path.split('/')[-1].isdigit():
+                    print(f"Skipping URL: {current_url}")
                     continue
 
                 html_content = await fetch_url(current_url, session)
                 if html_content is None:
-                    print(f"Skipping URL due to load failure: {current_url}")
                     continue
 
                 soup = BeautifulSoup(html_content, 'html.parser')
@@ -143,11 +142,12 @@ async def scrape_site(url: str, dataset_id: str):
                 if all_text:
                     await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
 
-                # Process links within the page
                 for link in soup.find_all('a', href=True):
                     href = urljoin(current_url, link['href'])
                     href_parsed = urlparse(href)
-                    if href_parsed.netloc == initial_domain and initial_domain not in href_parsed.query:
+                    if (href_parsed.netloc == initial_domain and initial_domain not in href_parsed.query
+                        and '#' not in href and '?' not in href
+                        and not href_parsed.path.split('/')[-1].isdigit()):
                         if not any(href.endswith(ext) for ext in config.unwanted_extensions):
                             queue.add(href)
 
