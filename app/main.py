@@ -99,7 +99,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     # Extract and sanitize filename from URL path
     path_segments = parsed_url.path.strip('/').split('/')
     filename_base = '-'.join(filter(None, path_segments)) or parsed_url.netloc
-    filename_base = re.sub(r'[^a-zA-Z0-9\-\.]', '-', filename_base)  # Replace non-allowed characters with hyphens
+    filename_base = re.sub(r'[^a-zA-Z0-9\-.]', '', filename_base)  # Remove all non-allowed characters except hyphens and periods
     filename_base = re.sub(r'[_]+', '-', filename_base)  # Convert any underscores to hyphens
     filename_base = re.sub(r'-{2,}', '-', filename_base)  # Consolidate multiple consecutive hyphens into one
 
@@ -107,10 +107,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     if filename_base == parsed_url.netloc:
         filename_base = parsed_url.netloc.split('.')[0]  # Use the domain name part only, without TLD
 
-    # Remove any trailing hyphens before adding the datetime suffix
-    filename_base = filename_base.rstrip('-')
-
-    datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
+    datetime_suffix = datetime.now().strftime("%Y%m%d%H%M%S")
     output_filename = f"{filename_base}-{datetime_suffix}.pdf"
     output_path = Path("/app/downloads") / output_filename
 
