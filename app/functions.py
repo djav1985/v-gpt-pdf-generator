@@ -100,33 +100,34 @@ async def fetch_url(current_url, session):
         print(f"Exception fetching URL: {current_url}, error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Exception fetching URL: {current_url}, error: {str(e)}")
 
-async def scrape_site(initial_url, session, dataset_id):
-    print("Scraping site started...")
-    queue = set([initial_url])
-    visited = set()
-    base_domain = urlparse(initial_url).netloc
+async def scrape_site(initial_url, dataset_id):
     try:
-        while queue:
-            current_url = queue.pop()
-            if current_url in visited:
-                continue
-            visited.add(current_url)
-            html_content = await fetch_url(current_url, session)
-            if html_content is None:
-                continue
-            soup = BeautifulSoup(html_content, 'html.parser')
-            all_text = []
-            for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
-                if not tag.find_parent(['footer', 'aside']):
-                    text = tag.get_text(strip=True)
-                    all_text.append(text)
-            if all_text:
-                await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
-            for link in soup.find_all('a', href=True):
-                href = urljoin(current_url, link['href'])
-                if href.startswith('http') and base_domain in urlparse(href).netloc and href not in visited:
-                    if not any(href.endswith(ext) for ext in config.unwanted_extensions):
-                        queue.add(href)
+        async with aiohttp.ClientSession() as session:
+            print("Scraping site started...")
+            queue = set([initial_url])
+            visited = set()
+            base_domain = urlparse(initial_url).netloc
+            while queue:
+                current_url = queue.pop()
+                if current_url in visited:
+                    continue
+                visited.add(current_url)
+                html_content = await fetch_url(current_url, session)
+                if html_content is None:
+                    continue
+                soup = BeautifulSoup(html_content, 'html.parser')
+                all_text = []
+                for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
+                    if not tag.find_parent(['footer', 'aside']):
+                        text = tag.get_text(strip=True)
+                        all_text.append(text)
+                if all_text:
+                    await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
+                for link in soup.find_all('a', href=True):
+                    href = urljoin(current_url, link['href'])
+                    if href.startswith('http') and base_domain in urlparse(href).netloc and href not in visited:
+                        if not any(href.endswith(ext) for ext in config.unwanted_extensions):
+                            queue.add(href)
     except Exception as e:
         print(f"Error during site scraping for URL: {initial_url}, error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error during site scraping: {str(e)}")
