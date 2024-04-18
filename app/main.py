@@ -75,10 +75,6 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     # Start the background task to generate the PDF
     background_tasks.add_task(generate_pdf, html_content=request.html_content, css_content=css_content, output_path=output_path)
 
-    # Check if there was an exception during PDF generation
-    if "exception" in background_tasks:
-        return JSONResponse(status_code=500, content={"message": "PDF generation failed. Please try again later.", "exception": background_tasks["exception"]})
-
     # Wait for the file to exist (with timeout)
     start_time = time.time()
     while not output_path.exists():
@@ -108,10 +104,6 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
         url=url,
         output_path=output_path
     )
-
-    # Check if there was an exception during PDF generation
-    if "exception" in background_tasks:
-        return JSONResponse(status_code=500, content={"message": "PDF generation failed. Please try again later.", "exception": background_tasks["exception"]})
 
     # Wait for the file to exist (with timeout)
     start_time = time.time()
