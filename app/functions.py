@@ -34,32 +34,27 @@ async def generate_pdf(html_content: str, css_content: str, output_path: Path):
 
 async def convert_url_to_pdf_task(url: str, output_path: str):
     try:
-        # Initiate an HTTP session and fetch the HTML content
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    print(f"Failed to fetch URL: {url}, status code: {response.status}")
-                    raise HTTPException(status_code=response.status, detail="Failed to fetch HTML content")
+            response = await session.get(url)
+            if response.status != 200:
+                print(f"Failed to fetch URL: {url}, status code: {response.status}")
+                return  # Optionally handle this case more gracefully
 
-                html_content = await response.text()
+            html_content = await response.text()
+            if not html_content:
+                print("No HTML content found to convert to PDF")
+                return  # Optionally handle this case more gracefully
 
-                # Process the HTML content if successfully retrieved
-                if html_content:
-                    soup = BeautifulSoup(html_content, 'html.parser')
-                    for tag in soup(['footer', 'aside']):
-                        tag.decompose()
-                    extracted_content = "".join(str(tag) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']))
+            soup = BeautifulSoup(html_content, 'html.parser')
+            for tag in soup(['footer', 'aside', 'nav', 'form']):
+                tag.decompose()
+            extracted_content = "".join(str(tag) for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']))
 
-                    # Convert extracted content to PDF
-                    css = CSS(string="body { font-family: Arial; color: #333; }")
-                    output_file_path = Path(output_path)
-                    HTML(string=extracted_content).write_pdf(target=output_file_path, stylesheets=[css])
-                else:
-                    print("No HTML content found to convert to PDF")
-                    raise HTTPException(status_code=404, detail="No HTML content found to convert to PDF")
+            css = CSS(string="body { font-family: Arial; color: #333; }")
+            HTML(string=extracted_content).write_pdf(target=output_path, stylesheets=[css])
+
     except Exception as e:
         print(f"Error converting URL to PDF: {url}, error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error converting URL to PDF: {str(e)}")
 
 # Function to clean up the downloads folder
 def cleanup_downloads_folder(folder_path: str):
@@ -83,7 +78,6 @@ async def submit_to_kb(url, text, dataset_id, session):
     filename = parsed_url.path.strip('/').split('/')[-1]
     filename = re.sub(r'[^\w\-_\.]', '_', filename)  # Replace non-alphanumeric characters with underscore
     filename = filename if filename else "default"  # Use a default name if result is empty
-    filename += ".txt"  # Append file extension
 
     api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
     headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
