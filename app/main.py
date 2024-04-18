@@ -6,6 +6,7 @@ import random
 import string
 import aiohttp
 
+from aiohttp import ClientSession
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import List, Optional
