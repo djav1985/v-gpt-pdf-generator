@@ -24,26 +24,35 @@ def generate_pdf(html_content: str, css_content: str, output_path: str):
         if css_content:
             html_content = f"<style>{css_content}</style>{html_content}"
         HTML(string=html_content).write_pdf(output_path, stylesheets=[CSS(string=css_content)])
-    except:
-        pass  # Silently ignore all exceptions
+    except Exception as e:
+        print("Error occurred:", e)
+        background_tasks["exception"] = str(e)
 
-# This function converts a given URL to a PDF file.
-def convert_url_to_pdf(url: str, output_path: str):
+# Function to convert a URL to PDF
+def convert_url_to_pdf_task(url: str, output_path: str, background_tasks: BackgroundTasks):
     try:
+        # Fetch HTML content from the URL
         response = requests.get(url)
         html_content = response.text if response.status_code == 200 else ""
+
+        # Parse HTML content using BeautifulSoup
         soup = BeautifulSoup(html_content, 'html.parser')
 
-        skip_tags = soup.find_all(['footer', 'aside'])
-        for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
-            if not any(parent in skip_tags for parent in tag.parents):
-                tag.decompose()
+        # Remove content within <footer> and <aside> tags
+        for tag in soup(['footer', 'aside']):
+            tag.decompose()
 
+        # Extract text from <h1> to <h6> and <p> tags, preserving HTML tags
+        extracted_content = ""
+        for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
+            extracted_content += str(tag)
+
+        # Write extracted content to PDF
         default_css = "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }"
-        modified_html = str(soup)
-        HTML(string=modified_html).write_pdf(output_path, stylesheets=[CSS(string=default_css)])
-    except:
-        pass
+        HTML(string=extracted_content).write_pdf(output_path, stylesheets=[CSS(string=default_css)])
+    except Exception as e:
+        print("Error occurred:", e)
+        background_tasks["exception"] = str(e)
 
 # This function cleans up the downloads folder by removing files older than 7 days.
 def cleanup_downloads_folder(folder_path: str):

@@ -48,9 +48,9 @@ class CreatePDFRequest(BaseModel):
     css_content: Optional[str] = Field(default="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }", description="Optional CSS content for styling the HTML.")
     output_filename: Optional[str] = Field(..., description="Optional filename, use - for spaces and do not include the extension.")
 
-# Request model for converting URLs to PDFs
-class ConvertURLsRequest(BaseModel):
-    urls: str = Field(..., description="Comma-separated list of upto 5 URLs to be converted into PDFs. Each URL should return HTML content that can be rendered into a PDF.")
+# Request model for converting a single URL to PDF
+class ConvertURLRequest(BaseModel):
+    url: str = Field(..., description="URL to be converted into a PDF. The URL should return HTML content that can be rendered into a PDF.")
 
 class KBCreationRequest(BaseModel):
     """Model for creating a Knowledge Base."""
@@ -85,59 +85,56 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     # Start the background task to generate the PDF
     background_tasks.add_task(generate_pdf, html_content=request.html_content, css_content=css_content, output_path=output_path)
 
+    # Check if there was an exception during PDF generation
+    if "exception" in background_tasks:
+        return JSONResponse(status_code=500, content={"message": "PDF generation failed. Please try again later.", "exception": background_tasks["exception"]})
+
     # Wait for the file to exist (with timeout)
     start_time = time.time()
     while not output_path.exists():
         await asyncio.sleep(1)
-        if time.time() - start_time > 15:
+        if time.time() - start_time > 5:
             pdf_url = f"{BASE_URL}/downloads/{request.output_filename}"
             return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
     return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
-@app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
-async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
+@app.post("/convert_urls", operation_id="url_to_pdf")
+async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
 
     background_tasks.add_task(cleanup_downloads_folder, "/app/downloads/")
 
-    # Split the string of URLs into a list
-    url_list = request.urls.split(',')
-
-    # Validate the number of URLs
-    if len(url_list) > 5:
-        raise HTTPException(status_code=400, detail="Too many URLs provided. Please limit to 5.")
+    # Fetch the URL from the request
+    url = request.url.strip()
 
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-    files_and_paths = []
+    output_filename = f"url-{datetime_suffix}.pdf"
+    output_path = Path("/app/downloads") / output_filename
 
-    # Start background tasks to convert the URLs to PDFs
-    for url in url_list:
-        url_path = urlparse(url.strip()).path  # strip() removes any leading/trailing whitespace
-        base_filename = ""
+    # Start background task to convert the URL to PDF
+    background_tasks.add_task(
+        convert_url_to_pdf_task,
+        url=url,
+        output_path=output_path
+    )
 
-        # Check if the URL is the root domain
-        if url_path == "/":
-            base_filename = urlparse(url.strip()).netloc.split('.')[-2]  # Get the second last part of the domain name
-        else:
-            base_filename = url_path.strip('/').split('/')[-1]
+    # Check if there was an exception during PDF generation
+    if "exception" in background_tasks:
+        return JSONResponse(status_code=500, content={"message": "PDF generation failed. Please try again later.", "exception": background_tasks["exception"]})
 
-        output_filename = f"{base_filename}-{datetime_suffix}.pdf"
-        output_path = Path("/app/downloads") / output_filename
-        background_tasks.add_task(
-            convert_url_to_pdf,
-            url=url.strip(),  # strip() to remove any leading/trailing whitespace
-            output_path=output_path
-        )
-        files_and_paths.append((output_path, output_filename))
+    # Wait for the file to exist (with timeout)
+    start_time = time.time()
+    while not output_path.exists():
+        await asyncio.sleep(1)
+        if time.time() - start_time > 10:
+            pdf_url = f"{BASE_URL}/downloads/{output_filename}"
+            return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
-    response_content = {
-        "message": "PDF generation started. Please check the URLs after some time.",
-        "files": [{"filename": filename, "url": f"{BASE_URL}/downloads/{filename}"} for _, filename in files_and_paths]
-    }
-    return JSONResponse(status_code=202, content=response_content)
+    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
-@app.post("/create-kb/", operation_id="create_new_kb")
+
+@app.post("/create-kb/", operation_id="create_kb")
 async def create_new_kb(request: KBCreationRequest, api_key: str = Depends(get_api_key)):
     """Create an empty Knowledge Base with the provided name."""
     api_url = f"{KB_BASE_URL}/v1/datasets"
