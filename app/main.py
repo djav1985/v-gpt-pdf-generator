@@ -21,7 +21,7 @@ from weasyprint import HTML, CSS
 
 
 # Importing local modules
-from functions import AppConfig, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, submit_to_kb, scrape_site
+from functions import AppConfig, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, scrape_site
 
 # Load configuration on startup
 config = AppConfig()
@@ -151,8 +151,7 @@ if config.DIFY:
 
     @app.post("/kb-scraper/")
     async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
-        async with ClientSession() as session:
-            await scrape_site(request.website_url, session)
+        background_tasks.add_task(scrape_site, request.website_url, api_key, request.dataset_id)
         return {"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."}
 
 # Root endpoint serving index.html directly
