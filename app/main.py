@@ -107,6 +107,9 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     if filename_base == parsed_url.netloc:
         filename_base = parsed_url.netloc.split('.')[0]  # Use the domain name part only, without TLD
 
+    # Remove any trailing hyphens before adding the datetime suffix
+    filename_base = filename_base.rstrip('-')
+
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     output_filename = f"{filename_base}-{datetime_suffix}.pdf"
     output_path = Path("/app/downloads") / output_filename
