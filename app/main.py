@@ -46,7 +46,7 @@ app = FastAPI(
 class CreatePDFRequest(BaseModel):
     html_content: str = Field(..., description="HTML content that will be converted into a PDF document.")
     css_content: Optional[str] = Field(default="body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }", description="Optional CSS content for styling the HTML.")
-    output_filename: Optional[str] = Field(default="none", description="Optional filename, use - for spaces and do not include the extension.")
+    output_filename: Optional[str] = Field(..., description="Optional filename, use - for spaces and do not include the extension.")
 
 # Request model for converting URLs to PDFs
 class ConvertURLsRequest(BaseModel):
@@ -75,11 +75,11 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
         # Generate a filename with random characters and datetime
         random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
         datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-        request.output_filename = f"{random_chars}{datetime_suffix}.pdf"
+        request.output_filename = f"{random_chars}-{datetime_suffix}.pdf"
     else:
         # Append datetime to provided filename
         datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-        request.output_filename += f"{datetime_suffix}.pdf"
+        request.output_filename += f"-{datetime_suffix}.pdf"
 
     output_path = Path("/app/downloads") / request.output_filename
     # Start the background task to generate the PDF
@@ -110,11 +110,19 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
 
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     files_and_paths = []
+
     # Start background tasks to convert the URLs to PDFs
     for url in url_list:
         url_path = urlparse(url.strip()).path  # strip() removes any leading/trailing whitespace
-        base_filename = f"{url_path.strip('/').split('/')[-1]}"
-        output_filename = f"{base_filename}{datetime_suffix}.pdf"
+        base_filename = ""
+
+        # Check if the URL is the root domain
+        if url_path == "/":
+            base_filename = urlparse(url.strip()).netloc.split('.')[-2]  # Get the second last part of the domain name
+        else:
+            base_filename = url_path.strip('/').split('/')[-1]
+
+        output_filename = f"{base_filename}-{datetime_suffix}.pdf"
         output_path = Path("/app/downloads") / output_filename
         background_tasks.add_task(
             convert_url_to_pdf,
