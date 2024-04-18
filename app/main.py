@@ -155,10 +155,15 @@ async def create_new_kb(request: KBCreationRequest, api_key: str = Depends(get_a
 
 @app.post("/kb-scraper/", operation_id="scrape_to_kb")
 async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
+    print("Entering scrape_to_kb function...")
     async with aiohttp.ClientSession() as session:
         async for url, text in scrape_site(request.website_url, session):
+            print(f"Scraping URL: {url}")
+            print(f"Text length: {len(text)}")
             background_tasks.add_task(submit_to_kb_api, url, text, request.dataset_id, request.indexing_technique, session)
+            print("Task added for URL:", url)
 
+    print("All tasks added. Returning response...")
     return JSONResponse(status_code=200, content={"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."})
 
 # Root endpoint serving index.html directly

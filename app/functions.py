@@ -66,33 +66,41 @@ def should_skip_url(href):
     return href.endswith(unwanted_extensions)
 
 async def scrape_site(initial_url, session):
+    print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
     try:
         while queue:
             current_url = queue.pop()
+            print("Current URL:", current_url)
             if current_url in visited:
                 continue
             visited.add(current_url)
+            print("Visiting URL:", current_url)
             html_content = await fetch_url(session, current_url)
             if html_content is None:
+                print("HTML content is None for URL:", current_url)
                 continue
             soup = BeautifulSoup(html_content, 'html.parser')
             for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
                 if not tag.find_parent(['footer', 'aside']):
-                    yield current_url, tag.get_text(strip=True) + '\n'
+                    text = tag.get_text(strip=True) + '\n'
+                    print("Extracted text from tag:", text)
+                    yield current_url, text
             # Add new pages to the queue
             for link in soup.find_all('a', href=True):
                 href = urljoin(current_url, link['href'])
                 if href not in visited and not should_skip_url(href):
+                    print("Adding URL to queue:", href)
                     queue.add(href)
-    except:
+    except Exception as e:
+        print("Exception occurred during scraping:", e)
         pass  # Silently ignore any errors
-
 
 # Asynchronous function to submit data to KB API
 async def submit_to_kb_api(url, text, dataset_id, indexing_technique, session):
     try:
+        print("Submitting to KB API...")
         api_url = f"{os.getenv('KB_BASE_URL')}/v1/datasets/{dataset_id}/document/create_by_text"
         headers = {
             "Authorization": f"Bearer {os.getenv('KB_API_KEY')}",
@@ -109,6 +117,8 @@ async def submit_to_kb_api(url, text, dataset_id, indexing_technique, session):
             if response.status != 200:
                 # Silently ignore any errors.
                 pass
-    except:
+            print("Response status:", response.status)
+    except Exception as e:
+        print("Exception occurred during submission to KB API:", e)
         # This will catch any other exceptions that might occur during the posting process
         pass
