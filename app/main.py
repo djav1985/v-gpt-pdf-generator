@@ -88,7 +88,7 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
-app.post("/convert_urls", operation_id="url_to_pdf")
+@app.post("/convert_urls", operation_id="url_to_pdf")
 async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
     url = request.url.strip()
 
