@@ -1,36 +1,83 @@
-# FastAPI PDF Generator
+# FastAPI Application with Docker
 
-This repository contains a FastAPI application designed to generate PDFs from HTML and CSS content and manage PDF storage with an automated cleanup task. The application uses `pdfkit` for PDF generation and `APScheduler` for scheduling PDF file cleanup in the background.
+This repository contains a FastAPI application designed to generate PDFs from HTML and CSS content. It's packaged with Docker and orchestrated using Docker Compose, simplifying development and deployment processes.
 
 ## Features
 
-- **PDF Generation**: Convert HTML and CSS into PDF files.
-- **API Key Authentication**: Secure API endpoints using API key authentication.
-- **Automated Cleanup**: Scheduled deletion of PDF files older than 3 days to manage disk space.
-- **OpenAPI Documentation**: Automatic OpenAPI schema generation for easy API documentation and testing.
+- **FastAPI**: A modern, fast (high-performance) web framework for building APIs with Python 3.7+ based on standard Python type hints.
+- **Docker**: Containerization of the application ensuring consistency across various development and deployment environments.
+- **Docker Compose**: Simplifies the setup of local development and services needed to run the application.
 
-## Usage
+## Prerequisites
 
-### Creating a PDF
+Before you can run this application, you'll need:
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-Send a POST request to /create with HTML and CSS content to generate a PDF. The API will return a URL to download the generated PDF.
+## Getting Started
+
+These instructions will cover usage information and for the docker container
+
+### Setup
+
+Clone the repository to your local machine:
 
 ```bash
-curl -X POST "http://localhost/create" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{ \"html_content\": \"<p>Hello World</p>\", \"css_content\": \"p { color: red; }\", \"output_filename\": \"example\"}"
+git clone https://github.com/yourusername/your-repository-name.git
+cd your-repository-name
 ```
 
-### Downloading a PDF
+### Build & Run
 
-Access the generated PDF via the /download/{filename} endpoint.
+To build and run the application in a Docker container, execute:
 
 ```bash
-curl -X GET "http://localhost/download/example.pdf"
+docker-compose up --build
 ```
 
-## API Documentation
+This command builds the Docker image if it hasn't been built and starts the containers specified in the `docker-compose.yml` file.
 
-Visit [http://localhost/docs](http://localhost/docs) to view the Swagger UI where you can test and document the API endpoints.
+### Accessing the Application
 
-## Scheduled Cleanup
+Once the application is running, you can access:
+- The API at: [http://localhost:8000](http://localhost:8000)
+- Swagger UI Documentation at: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc Documentation at: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-The application is configured to automatically delete PDF files older than 3 days. This task is scheduled to run once every day using a cron job within the Docker environment.
+### API Endpoints
+
+- `POST /create`: Endpoint to create a PDF from HTML and CSS.
+- `POST /convert_urls`: Endpoint to convert given URLs into PDFs.
+- `GET /`: Serves the `index.html` file (not shown in API docs).
+
+## Development
+
+### Environment Variables
+
+Configure the following environment variables before starting the application:
+
+- `API_KEY`: The API key for accessing the secured endpoints. (Optional)
+- `BASE_URL`: The base URL for the application. Defaults to `http://localhost`.
+
+### Adding New Dependencies
+
+If you need to add new Python packages:
+
+1. Add the package to the `requirements.txt` file.
+2. Rebuild the Docker image:
+
+```bash
+docker-compose up --build
+```
+
+## Testing
+
+Run tests directly within your Docker container:
+
+```bash
+docker-compose exec web pytest
+```
+
+## Deployment
+
+To deploy this application, use the provided `Dockerfile` and `docker-compose.yml` files to manage and scale the application across different environments.

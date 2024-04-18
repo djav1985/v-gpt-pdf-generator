@@ -13,19 +13,21 @@ from typing import List  # Type hinting
 from concurrent.futures import ThreadPoolExecutor  # Asynchronous execution
 import requests  # HTTP requests
 
+# Importing local modules
+from functions import  load_configuration, generate_pdf, convert_url_to_pdf
 
-# Base URL for the API server
-BASE_URL = getenv("BASE_URL", "http://localhost")
+# Load configuration on startup
+BASE_URL, API_KEY, accounts = load_configuration()
 
-# Optional API key from the environment
-API_KEY = getenv("API_KEY")
-bearer_scheme = HTTPBearer(auto_error=False)  # Avoid auto error to handle no Authorization header gracefully
+# Setup the bearer token authentication scheme
+bearer_scheme = HTTPBearer(auto_error=False)
 
 async def get_api_key(credentials: HTTPAuthorizationCredentials = Security(bearer_scheme)):
-    if API_KEY:  # Check if API_KEY is set
-        if not credentials or credentials.credentials != API_KEY:
-            raise HTTPException(status_code=403, detail="Invalid or missing API key")
-    # If API_KEY is not set, or if the provided credentials are valid, allow access
+    # If the API key is not provided or does not match the expected value, return a 403 error
+    if API_KEY and (not credentials or credentials.credentials != API_KEY):
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Invalid or missing API key")
+
+    # Return the provided API key, or None if it was not provided
     return credentials.credentials if credentials else None
 
 # FastAPI application instance
@@ -45,17 +47,9 @@ class CreatePDFRequest(BaseModel):
     css_content: str  # CSS content for styling the PDF
     output_filename: str  # Filename for the generated PDF
 
-# Function to generate a PDF from provided HTML and CSS content
-def generate_pdf(html_content, css_content, output_path):
-    # If CSS content is provided, prepend it to the HTML content
-    if css_content and css_content.strip():
-        html_content = f"<style>{css_content}</style>{html_content}"
-
-    # Generate the PDF using WeasyPrint
-    try:
-        HTML(string=html_content).write_pdf(output_path, stylesheets=[CSS(string=css_content)])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# Request model for converting URLs to PDFs
+class ConvertURLsRequest(BaseModel):
+    urls: List[str]  # List of URLs to convert to PDFs
 
 # Endpoint for creating a new PDF
 @app.post("/create", operation_id="create_pdf")
@@ -72,26 +66,8 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
         output_path=output_path
     )
 
-    # Return the URL where the PDF will be available
-    pdf_url = f"{BASE_URL}/downloads/{request.output_filename}"
-    return {"detail": "PDF generation started", "url": pdf_url}
-
-# Request model for converting URLs to PDFs
-class ConvertURLsRequest(BaseModel):
-    urls: List[str]  # List of URLs to convert to PDFs
-
-# Function to convert a URL to a PDF
-def convert_url_to_pdf(url: str, output_path: str):
-    """Fetch HTML from URL and convert it to a PDF file."""
-    try:
-        # Fetch HTML content from the URL
-        response = requests.get(url)
-        response.raise_for_status()  # Raise exception for bad requests
-        html_content = response.text
-        # Generate PDF from HTML content
-        HTML(string=html_content).write_pdf(output_path)
-    except Exception as e:
-        print(f"Failed to convert {url} to PDF: {str(e)}")  # Log error
+    # Return the PDF file directly in the response
+    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
 @app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
@@ -112,9 +88,8 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
             output_path=output_path
         )
 
-    # Return the URLs where the PDFs will be available
-    pdf_urls = [f"{BASE_URL}/downloads/{urlparse(url).path.strip('/').split('/')[-1]}.pdf" for url in request.urls]
-    return {"detail": "PDF generation started", "urls": pdf_urls}
+    # Return the PDF file directly in the response
+    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
 # Root endpoint serving index.html directly
 @app.get("/", include_in_schema=False)
