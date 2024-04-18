@@ -76,7 +76,7 @@ def cleanup_downloads_folder(folder_path: str):
 async def submit_to_kb(url, text, dataset_id, session):
     api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
     headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
-    payload = {"name": url, "text": text, "indexing_technique": "high_quality"}
+    payload = {"name": url, "text": text, "indexing_technique": "high_quality","process_rule": { "mode": "automatic"}}
     try:
         async with session.post(api_url, headers=headers, json=payload) as response:
             if response.status != 200:
