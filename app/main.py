@@ -77,18 +77,18 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     background_tasks.add_task(generate_pdf, html_content=request.html_content, css_content=css_content, output_path=output_path)
 
     # Wait for the file to exist (with timeout)
-    await asyncio.sleep(5)
+    await asyncio.sleep(3)
     start_time = time.time()
     while not output_path.exists():
-        await asyncio.sleep(5)
-        if time.time() - start_time > 20:
+        await asyncio.sleep(1)
+        if time.time() - start_time > 10:
             pdf_url = f"{config.BASE_URL}/downloads/{request.output_filename}"
             return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
     return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
-@app.post("/convert_urls", operation_id="url_to_pdf")
+app.post("/convert_urls", operation_id="url_to_pdf")
 async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
     url = request.url.strip()
 
@@ -96,14 +96,19 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     parsed_url = urlparse(url)
     clean_url = urlunparse(parsed_url._replace(query="", fragment=""))
 
-    # Generate a sanitized filename from the cleaned URL's path
-    filename_base = parsed_url.path.strip('/').split('/')[-1]
-    # Convert underscores to hyphens, retain hyphens, and remove other non-alphanumeric characters except for periods
+    # Extract and sanitize filename from URL path
+    path_segments = parsed_url.path.strip('/').split('/')
+    filename_base = '-'.join(filter(None, path_segments)) or parsed_url.netloc
     filename_base = re.sub(r'[^a-zA-Z0-9\-\.]', '-', filename_base)  # Replace non-allowed characters with hyphens
     filename_base = re.sub(r'[_]+', '-', filename_base)  # Convert any underscores to hyphens
+    filename_base = re.sub(r'-+', '-', filename_base)  # Avoid multiple consecutive hyphens
+
+    # Check for root domain without path
+    if not filename_base or filename_base == parsed_url.netloc:
+        filename_base = parsed_url.netloc.split('.')[0]  # Use the domain name part only
 
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-    output_filename = f"{filename_base[:-4]}-{datetime_suffix}.pdf"
+    output_filename = f"{filename_base}-{datetime_suffix}.pdf"
     output_path = Path("/app/downloads") / output_filename
 
     # Start background task to convert the URL to PDF
@@ -114,11 +119,11 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     )
 
     # Wait for the file to exist (with timeout)
-    await asyncio.sleep(5)
+    await asyncio.sleep(3)
     start_time = time.time()
     while not output_path.exists():
-        await asyncio.sleep(5)
-        if time.time() - start_time > 20:
+        await asyncio.sleep(1)
+        if time.time() - start_time > 10:
             pdf_url = f"{config.BASE_URL}/downloads/{output_filename}"
             return JSONResponse(status_code=202, content={"message": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
 
@@ -150,7 +155,7 @@ if config.DIFY:
                     raise HTTPException(status_code=response.status, detail="API request failed to create the KB.")
         return JSONResponse(status_code=200, content={"message": f"Knowledge Base {request.name} created successfully."})
 
-    @app.post("/kb-scraper/")
+    @app.post("/kb-scraper/", operation_id="web_to_kb")
     async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
         # Add task with correct parameters
         background_tasks.add_task(scrape_site, request.website_url, request.dataset_id)
