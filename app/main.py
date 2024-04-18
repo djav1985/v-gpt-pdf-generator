@@ -152,7 +152,7 @@ if config.DIFY:
     @app.post("/kb-scraper/")
     async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
         async with ClientSession() as session:
-            await scrape_site(request.website_url, session, request.unwanted_extensions, background_tasks, request.dataset_id, request.indexing_technique)
+            await scrape_site(request.website_url, session, unwanted_extensions, background_tasks, request.dataset_id, request.indexing_technique)
         return {"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."}
 
 # Root endpoint serving index.html directly
