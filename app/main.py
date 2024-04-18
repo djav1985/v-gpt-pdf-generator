@@ -122,7 +122,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
-if config.DIFY_INTERGRATION:
+if config.DIFY:
 
     class KBCreationRequest(BaseModel):
         """Model for creating a Knowledge Base."""
