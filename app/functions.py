@@ -59,17 +59,15 @@ def cleanup_downloads_folder(folder_path: str):
     except:
         pass  # Silently ignore any failures
 
-def should_skip_url(href):
+async def fetch_url(session, url):
     unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif',
                            '.ico', '.svg', '.webp', '.heif', '.heic', '.css', '.js',
                            '.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf', '.docx',
                            '.xlsx', '.pptx', '.zip', '.rar', '.7z')
-    return href.endswith(unwanted_extensions)
-
-async def fetch_url(session, url):
-    # Placeholder for fetch_url function
     async with session.get(url) as response:
         if response.status == 200:
+            if url.endswith(unwanted_extensions):
+                return None
             return await response.text()
         else:
             return None
@@ -78,6 +76,7 @@ async def scrape_site(initial_url, session):
     print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
+    base_domain = urlparse(initial_url).netloc
     try:
         while queue:
             current_url = queue.pop()
@@ -99,9 +98,10 @@ async def scrape_site(initial_url, session):
             # Add new pages to the queue
             for link in soup.find_all('a', href=True):
                 href = urljoin(current_url, link['href'])
-                if href not in visited and not should_skip_url(href):
-                    print("Adding URL to queue:", href)
-                    queue.add(href)
+                if href.startswith('http') and base_domain in href and href not in visited:
+                    if not href.endswith(unwanted_extensions):
+                        print("Adding URL to queue:", href)
+                        queue.add(href)
     except Exception as e:
         print("Exception occurred during scraping:", e)
         pass  # Silently ignore any errors

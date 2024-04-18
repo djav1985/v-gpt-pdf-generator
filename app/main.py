@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from weasyprint import HTML, CSS
 
 # Importing local modules
-from functions import load_configuration, generate_pdf, convert_url_to_pdf, cleanup_downloads_folder, should_skip_url, scrape_site, submit_to_kb_api
+from functions import load_configuration, generate_pdf, convert_url_to_pdf, cleanup_downloads_folder, scrape_site, submit_to_kb_api
 
 # Load configuration on startup
 BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY = load_configuration()
