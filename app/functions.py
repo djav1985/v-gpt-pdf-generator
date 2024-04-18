@@ -1,5 +1,6 @@
 # Importing required libraries and modules
 import os
+import re
 import aiohttp
 from aiohttp import ClientSession
 from pathlib import Path
@@ -78,20 +79,30 @@ async def submit_to_kb(url, text, dataset_id, session):
     parsed_url = urlparse(url)
     clean_url = urlunparse(parsed_url._replace(query="", fragment=""))
 
+    # Generate a filename from the cleaned URL's path
+    filename = parsed_url.path.strip('/').split('/')[-1]
+    filename = re.sub(r'[^\w\-_\.]', '_', filename)  # Replace non-alphanumeric characters with underscore
+    filename = filename if filename else "default"  # Use a default name if result is empty
+    filename += ".txt"  # Append file extension
+
     api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
     headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
-    payload = {"name": clean_url,"text": text,"indexing_technique": "high_quality","process_rule": { "mode": "automatic"}}
+    payload = {
+        "name": filename,  # Use the generated filename instead of the full URL
+        "text": text,
+        "indexing_technique": "high_quality",
+        "process_rule": {"mode": "automatic"}
+    }
 
     try:
         async with session.post(api_url, headers=headers, json=payload) as response:
             if response.status != 200:
                 response_text = await response.text()
-                print(f"Failed to submit data to KB, status code: {response.status}, url: {clean_url}, response: {response_text}")
-                # Optionally, handle or log the error locally instead of raising an HTTPException
+                print(f"Failed to submit data to KB, status code: {response.status}, url: {filename}, response: {response_text}")
                 return {"success": False, "error": f"Failed to submit data to KB: {response.status}, response: {response_text}"}
             return {"success": True}
     except Exception as e:
-        print(f"Exception when submitting to KB: {clean_url}, error: {str(e)}")
+        print(f"Exception when submitting to KB: {filename}, error: {str(e)}")
         return {"success": False, "error": f"Exception when submitting to KB: {str(e)}"}
 
 async def fetch_url(current_url, session):
