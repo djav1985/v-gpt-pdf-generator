@@ -1,20 +1,22 @@
 # Importing necessary modules and libraries
 import os
-import requests  # HTTP requests
+import requests
 import time
+import asyncio
+from pathlib import Path
+from urllib.parse import urlparse
+from typing import List
+from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks  # FastAPI framework components
-from fastapi.responses import FileResponse, JSONResponse  # Response class for serving files
-from fastapi.staticfiles import StaticFiles  # Serve static files
-from fastapi import FastAPI, HTTPException, Security, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Security
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
+from weasyprint import HTML, CSS
 
-from pathlib import Path  # Path manipulation
-from pydantic import BaseModel  # Data validation
-from weasyprint import HTML, CSS  # PDF generation
-from urllib.parse import urlparse  # URL parsing
-from typing import List  # Type hinting
-from concurrent.futures import ThreadPoolExecutor  # Asynchronous execution
+# Importing local modules
+from functions import load_configuration, generate_pdf, convert_url_to_pdf
 
 
 # Importing local modules
