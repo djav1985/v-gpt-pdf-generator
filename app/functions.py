@@ -30,7 +30,7 @@ async def generate_pdf(html_content: str, css_content: str, output_path: Path):
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
-        
+
 async def convert_url_to_pdf_task(url: str, output_path: str):
     try:
         # Initiate an HTTP session and fetch the HTML content
@@ -80,11 +80,15 @@ async def submit_to_kb(url, text, dataset_id, session):
     try:
         async with session.post(api_url, headers=headers, json=payload) as response:
             if response.status != 200:
-                print(f"Failed to submit data to KB, status code: {response.status}, url: {url}")
-                raise HTTPException(status_code=response.status, detail=f"Failed to submit data to KB: {response.status}")
+                response_text = await response.text()
+                print(f"Failed to submit data to KB, status code: {response.status}, url: {url}, response: {response_text}")
+                # Optionally, handle or log the error locally instead of raising an HTTPException
+                return {"success": False, "error": f"Failed to submit data to KB: {response.status}"}
+            return {"success": True}
     except Exception as e:
-        print(f"Exception when submitting to KB: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Exception when submitting to KB: {str(e)}")
+        print(f"Exception when submitting to KB: {url}, error: {str(e)}")
+        return {"success": False, "error": f"Exception when submitting to KB: {str(e)}"}
+
 
 async def fetch_url(current_url, session):
     try:
