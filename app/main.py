@@ -1,5 +1,6 @@
 # Importing necessary modules and libraries
 import os
+import re
 import time
 import asyncio
 import random
@@ -39,7 +40,7 @@ app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
-    servers=[{"url": config.BASE_URL, "description": "Base API server"}]
+    servers=[{"url": f"http://pdf", "description": "Base API server"}]
 )
 
 # Request model for creating a PDF

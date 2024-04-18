@@ -93,7 +93,7 @@ async def submit_to_kb(url, text, dataset_id, session):
         "name": filename,  # Use the generated filename instead of the full URL
         "text": text,
         "indexing_technique": "high_quality",
-        "process_rule": {"mode": "automatic"}
+        "process_rule": {"mode": "automatic","rules": {"segmentation": {"max_tokens": 256}}}
     }
 
     try:

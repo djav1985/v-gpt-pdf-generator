@@ -1,19 +1,13 @@
-version: '3.8'
-services:
-  app:
+  pdf:
     container_name: pdf-generator
-    image: vontainment/gpt-pdf-generator:latest  # Use your appropriate image
-    hostname: pdf-generator
-    restart: unless-stopped
+    image: vontainment/gpt-pdf-generator:dev  # Use your appropriate image
+    restart: always
     ports:
       - "8075:80"  # Map port 80 of the container to port 80 on the host
     environment:
-      BASE_URL: https://dify.hugev.xyz  # Set this to your actual base URL
-      DIFY_INTEGRATION: true
-      KB_BASE_URL: https://pdf.hugev.xyz  # Set this to your actual base URL
-      KB_API_KEY: tugutuugghg
+      BASE_URL: https://dify.hugev.xyz
+      DIFY: true
+      KB_BASE_URL: https://dify.hugev.xyz
+      KB_API_KEY: dataset-quUOrwDysLNRlyKE7RhcIPej
     volumes:
-      - downloads:/app/downloads  # Ensure downloads directory is persistent
-
-volumes:
-   downloads:
+      - pdf-data:/app/downloads  # Ensure downloads directory is persistent
