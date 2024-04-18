@@ -21,7 +21,7 @@ from weasyprint import HTML, CSS
 
 
 # Importing local modules
-from functions import AppConfig, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, submit_to_kb_api, scrape_site
+from functions import AppConfig, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, submit_to_kb, scrape_site
 
 # Load configuration on startup
 config = AppConfig()
