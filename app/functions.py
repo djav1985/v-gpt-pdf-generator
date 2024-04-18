@@ -73,9 +73,9 @@ def cleanup_downloads_folder(folder_path: str):
         pass  # Silently ignore any failures
 
 async def fetch_url(current_url, session, unwanted_extensions):
-    async with session.get(url) as response:
+    async with session.get(current_url) as response:
         if response.status == 200:
-            if url.endswith(unwanted_extensions):
+            if current_url.endswith(unwanted_extensions):
                 return None
             return await response.text()
         else:
