@@ -1,12 +1,12 @@
 # Importing required libraries and modules
 import os
 import requests
-import aiohttp
 from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
+
 
 # This function loads configuration from environment variables.
 def load_configuration():
