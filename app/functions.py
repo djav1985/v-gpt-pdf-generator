@@ -13,6 +13,7 @@ def load_configuration():
     # The base URL for the application, defaulting to "http://localhost"
     BASE_URL = os.getenv("BASE_URL", "http://localhost")
     # The API key for authentication
+    DIFY_INTERGRATION = os.getenv("DIFY_INTERGRATION")
     API_KEY = os.getenv("API_KEY")
     KB_API_KEY = os.getenv("KB_API_KEY")
     KB_BASE_URL = os.getenv("KB_BASE_URL")

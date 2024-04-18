@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 from weasyprint import HTML, CSS
 
 # Importing local modules
-from functions import load_configuration, generate_pdf, convert_url_to_pdf, cleanup_downloads_folder, scrape_site, submit_to_kb_api
+from functions import load_configuration, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, scrape_site, submit_to_kb_api
 
 # Load configuration on startup
 BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY = load_configuration()
@@ -50,16 +50,6 @@ class CreatePDFRequest(BaseModel):
 # Request model for converting a single URL to PDF
 class ConvertURLRequest(BaseModel):
     url: str = Field(..., description="URL to be converted into a PDF. The URL should return HTML content that can be rendered into a PDF.")
-
-class KBCreationRequest(BaseModel):
-    """Model for creating a Knowledge Base."""
-    name: str = Field(..., description="Name of the knowledge base to be created.")
-
-class KBSubmissionRequest(BaseModel):
-    """Model for submitting a document."""
-    website_url: str = Field(..., description="URL of the website to scrape.")
-    dataset_id: str = Field(..., description="ID of the dataset to submit the document to.")
-    indexing_technique: Optional[str] = Field("high_quality", description="Indexing technique to be used.")
 
 # Endpoint for creating a new PDF
 @app.post("/create", operation_id="create_pdf")
@@ -132,6 +122,15 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
+class KBCreationRequest(BaseModel):
+    """Model for creating a Knowledge Base."""
+    name: str = Field(..., description="Name of the knowledge base to be created.")
+
+class KBSubmissionRequest(BaseModel):
+    """Model for submitting a document."""
+    website_url: str = Field(..., description="URL of the website to scrape.")
+    dataset_id: str = Field(..., description="ID of the dataset to submit the document to.")
+    indexing_technique: Optional[str] = Field("high_quality", description="Indexing technique to be used.")
 
 @app.post("/create-kb/", operation_id="create_kb")
 async def create_new_kb(request: KBCreationRequest, api_key: str = Depends(get_api_key)):
