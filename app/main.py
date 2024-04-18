@@ -158,7 +158,6 @@ if DIFY_INTERGRATION:
             async for url, text in scrape_site(request.website_url, session, unwanted_extensions):
                 print(f"Scraping URL: {url}")
                 background_tasks.add_task(submit_to_kb_api, url, text, request.dataset_id, request.indexing_technique, session)
-                print("Task added for URL:", url)
 
         print("All tasks added. Returning response...")
         return JSONResponse(status_code=200, content={"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."})
