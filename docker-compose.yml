@@ -5,11 +5,12 @@ services:
     image: vontainment/gpt-pdf-generator:latest  # Use your appropriate image
     hostname: pdf-generator
     restart: unless-stopped
-    network_mode: bridge
     ports:
       - "8075:80"  # Map port 80 of the container to port 80 on the host
     environment:
-      - BASE_URL=https://pdf.hugev.xyz  # Set this to your actual base URL
+      BASE_URL: https://dify.hugev.xyz  # Set this to your actual base URL
+      API_BASE_URL: https://pdf.hugev.xyz  # Set this to your actual base URL
+      KB_API_KEY: tugutuugghg
     volumes:
       - downloads:/app/downloads  # Ensure downloads directory is persistent
 
