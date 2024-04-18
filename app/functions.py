@@ -1,6 +1,7 @@
 # Importing required libraries and modules
 import os
 import aiohttp
+from aiohttp import ClientSession
 from pathlib import Path
 from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
