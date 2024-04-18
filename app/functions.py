@@ -64,7 +64,7 @@ def cleanup_downloads_folder(folder_path: str):
         print("Cleanup error:", e)
 
 # Async function to submit data to KB API
-async def submit_to_kb_api(url, text, dataset_id, session):
+async def submit_to_kb(url, text, dataset_id, session):
     try:
         api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
         headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
