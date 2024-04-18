@@ -1,6 +1,5 @@
 # Importing necessary modules and libraries
 import os
-import requests
 import time
 import asyncio
 import random
