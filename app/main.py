@@ -23,7 +23,7 @@ from weasyprint import HTML, CSS
 from functions import load_configuration, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, scrape_site, submit_to_kb_api
 
 # Load configuration on startup
-BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, DIFY_INTERGRATION = load_configuration()
+BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTERGRATION = load_configuration()
 
 # Setup the bearer token authentication scheme
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -153,10 +153,10 @@ if DIFY_INTERGRATION:
     @app.post("/kb-scraper/", operation_id="scrape_to_kb")
     async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
         print("Entering scrape_to_kb function...")
+
         async with aiohttp.ClientSession() as session:
-            async for url, text in scrape_site(request.website_url, session):
+            async for url, text in scrape_site(request.website_url, session, unwanted_extensions):
                 print(f"Scraping URL: {url}")
-                print(f"Text length: {len(text)}")
                 background_tasks.add_task(submit_to_kb_api, url, text, request.dataset_id, request.indexing_technique, session)
                 print("Task added for URL:", url)
 

@@ -17,7 +17,10 @@ def load_configuration():
     API_KEY = os.getenv("API_KEY")
     KB_API_KEY = os.getenv("KB_API_KEY")
     KB_BASE_URL = os.getenv("KB_BASE_URL")
-    return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, DIFY_INTEGRATION
+
+    unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif','.ico', '.svg', '.webp', '.heif', '.heic', '.css', '.js','.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf', '.docx','.xlsx', '.pptx', '.zip', '.rar', '.7z')
+
+    return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTEGRATION
 
 # Function to generate a PDF from provided HTML and CSS content
 def generate_pdf(html_content: str, css_content: str, output_path: str):
@@ -69,11 +72,7 @@ def cleanup_downloads_folder(folder_path: str):
     except:
         pass  # Silently ignore any failures
 
-async def fetch_url(session, url):
-    unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif',
-                           '.ico', '.svg', '.webp', '.heif', '.heic', '.css', '.js',
-                           '.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf', '.docx',
-                           '.xlsx', '.pptx', '.zip', '.rar', '.7z')
+async def fetch_url(session, url, unwanted_extensions):
     async with session.get(url) as response:
         if response.status == 200:
             if url.endswith(unwanted_extensions):
@@ -82,7 +81,7 @@ async def fetch_url(session, url):
         else:
             return None
 
-async def scrape_site(initial_url, session):
+async def scrape_site(initial_url, session, unwanted_extensions):
     print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
@@ -95,7 +94,7 @@ async def scrape_site(initial_url, session):
                 continue
             visited.add(current_url)
             print("Visiting URL:", current_url)
-            html_content = await fetch_url(session, current_url)
+            html_content = await fetch_url(current_url, session,  unwanted_extensions)
             if html_content is None:
                 print("HTML content is None for URL:", current_url)
                 continue
@@ -103,7 +102,6 @@ async def scrape_site(initial_url, session):
             for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
                 if not tag.find_parent(['footer', 'aside']):
                     text = tag.get_text(strip=True) + '\n'
-                    print("Extracted text from tag:", text)
                     yield current_url, text
             # Add new pages to the queue
             for link in soup.find_all('a', href=True):
