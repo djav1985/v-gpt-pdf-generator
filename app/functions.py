@@ -100,13 +100,14 @@ async def fetch_url(current_url, session):
         print(f"Exception fetching URL: {current_url}, error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Exception fetching URL: {current_url}, error: {str(e)}")
 
-async def scrape_site(initial_url, dataset_id):
+# Scrape_site function assuming session management is internal to the function
+async def scrape_site(url: str, dataset_id: str):
     try:
         async with aiohttp.ClientSession() as session:
             print("Scraping site started...")
-            queue = set([initial_url])
+            queue = set([url])
             visited = set()
-            base_domain = urlparse(initial_url).netloc
+            base_domain = urlparse(url).netloc
             while queue:
                 current_url = queue.pop()
                 if current_url in visited:
@@ -129,5 +130,5 @@ async def scrape_site(initial_url, dataset_id):
                         if not any(href.endswith(ext) for ext in config.unwanted_extensions):
                             queue.add(href)
     except Exception as e:
-        print(f"Error during site scraping for URL: {initial_url}, error: {str(e)}")
+        print(f"Error during site scraping for URL: {url}, error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error during site scraping: {str(e)}")
