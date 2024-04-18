@@ -8,9 +8,8 @@ import aiohttp
 
 from pathlib import Path
 from urllib.parse import urlparse
-from typing import List
+from typing import List, Optional
 from datetime import datetime
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Security
 from fastapi.responses import FileResponse, JSONResponse
@@ -19,17 +18,18 @@ from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from weasyprint import HTML, CSS
 
+
 # Importing local modules
-from functions import load_configuration, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, scrape_site, submit_to_kb_api
+from functions import AppConfig, generate_pdf, convert_url_to_pdf_task, cleanup_downloads_folder, submit_to_kb_api
 
 # Load configuration on startup
-BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTERGRATION = load_configuration()
+config = AppConfig()
 
 # Setup the bearer token authentication scheme
 bearer_scheme = HTTPBearer(auto_error=False)
 
 async def get_api_key(credentials: HTTPAuthorizationCredentials = Security(bearer_scheme)):
-    if API_KEY and (not credentials or credentials.credentials != API_KEY):
+    if config.API_KEY and (not credentials or credentials.credentials != config.API_KEY):
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
     return credentials.credentials if credentials else None
 
@@ -38,7 +38,7 @@ app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
-    servers=[{"url": BASE_URL, "description": "Base API server"}]
+    servers=[{"url": config.BASE_URL, "description": "Base API server"}]
 )
 
 # Request model for creating a PDF
@@ -122,7 +122,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
-if DIFY_INTERGRATION:
+if config.DIFY_INTERGRATION:
 
     class KBCreationRequest(BaseModel):
         """Model for creating a Knowledge Base."""
@@ -136,14 +136,12 @@ if DIFY_INTERGRATION:
 
     @app.post("/create-kb/", operation_id="create_kb")
     async def create_new_kb(request: KBCreationRequest, api_key: str = Depends(get_api_key)):
-        """Create an empty Knowledge Base with the provided name."""
-        api_url = f"{KB_BASE_URL}/v1/datasets"
+        api_url = f"{config.KB_BASE_URL}/v1/datasets"
         headers = {
-            "Authorization": f"Bearer {KB_API_KEY}",
+            "Authorization": f"Bearer {config.KB_API_KEY}",
             "Content-Type": "application/json"
         }
         payload = {"name": request.name}
-
         async with aiohttp.ClientSession() as session:
             async with session.post(api_url, headers=headers, json=payload) as response:
                 if response.status != 200:

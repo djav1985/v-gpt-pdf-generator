@@ -7,23 +7,18 @@ from fastapi import HTTPException, BackgroundTasks
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
+class AppConfig:
+    def __init__(self):
+        self.BASE_URL = os.getenv("BASE_URL", "http://localhost")
+        self.API_KEY = os.getenv("API_KEY")
+        self.KB_API_KEY = os.getenv("KB_API_KEY")
+        self.KB_BASE_URL = os.getenv("KB_BASE_URL")
+        self.DIFY_INTEGRATION = os.getenv("DIFY_INTEGRATION")
+        self.unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif', '.ico', '.svg', '.webp',
+                                    '.heif', '.heic', '.css', '.js', '.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf',
+                                    '.docx', '.xlsx', '.pptx', '.zip', '.rar', '.7z')
 
-# This function loads configuration from environment variables.
-def load_configuration():
-    # The base URL for the application, defaulting to "http://localhost"
-    BASE_URL = os.getenv("BASE_URL", "http://localhost")
-    # The API key for authentication
-    DIFY_INTEGRATION = os.getenv("DIFY_INTEGRATION")
-    API_KEY = os.getenv("API_KEY")
-    KB_API_KEY = os.getenv("KB_API_KEY")
-    KB_BASE_URL = os.getenv("KB_BASE_URL")
-
-    unwanted_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.tif','.ico', '.svg', '.webp', '.heif', '.heic', '.css', '.js','.mp4', '.avi', '.mp3', '.wav', '.mov', '.pdf', '.docx','.xlsx', '.pptx', '.zip', '.rar', '.7z')
-
-    return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTEGRATION
-
-# Load configuration on startup
-BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTEGRATION = load_configuration()
+config = AppConfig()
 
 # PDF generation tasks
 async def generate_pdf(html_content: str, css_content: str, output_path: Path):
@@ -31,7 +26,7 @@ async def generate_pdf(html_content: str, css_content: str, output_path: Path):
         css = CSS(string=css_content) if css_content else CSS(string="body { font-family: Arial; }")
         HTML(string=html_content).write_pdf(target=output_path, stylesheets=[css])
     except Exception as e:
-        print("Error creating PDF:", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Async function to fetch HTML content using aiohttp
 async def fetch_html_content(url):
@@ -69,8 +64,8 @@ def cleanup_downloads_folder(folder_path: str):
 # Async function to submit data to KB API
 async def submit_to_kb_api(url, text, dataset_id, session):
     try:
-        api_url = f"{config['KB_BASE_URL']}/v1/datasets/{dataset_id}/document/create_by_text"
-        headers = {"Authorization": f"Bearer {config['KB_API_KEY']}", "Content-Type": "application/json"}
+        api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
+        headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
         payload = {"name": url, "text": text, "indexing_technique": "high_quality"}
         async with session.post(api_url, headers=headers, json=payload) as response:
             if response.status != 200:
