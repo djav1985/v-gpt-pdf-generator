@@ -63,6 +63,22 @@ def cleanup_downloads_folder(folder_path: str):
     except Exception as e:
         print("Cleanup error:", e)
         
+def cleanup_downloads_folder(folder_path: str):
+    now = datetime.now()
+    age_limit = now - timedelta(days=7)
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path) and datetime.fromtimestamp(os.path.getmtime(file_path)) < age_limit:
+            os.remove(file_path)
+
+async def submit_to_kb(url, text, dataset_id, session):
+    api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
+    headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
+    payload = {"name": url, "text": text, "indexing_technique": "high_quality"}
+    async with session.post(api_url, headers=headers, json=payload) as response:
+        if response.status != 200:
+            raise HTTPException(status_code=response.status, detail=f"Failed to submit data to KB: {response.status}")
+
 async def fetch_url(current_url, session):
     async with session.get(current_url) as response:
         if response.status == 200:
@@ -71,8 +87,8 @@ async def fetch_url(current_url, session):
             return await response.text()
         else:
             return None
-
-async def scrape_site(initial_url, session):
+            
+async def scrape_site(initial_url, session, dataset_id):
     print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
@@ -80,39 +96,24 @@ async def scrape_site(initial_url, session):
     try:
         while queue:
             current_url = queue.pop()
-            print("Current URL:", current_url)
             if current_url in visited:
                 continue
             visited.add(current_url)
-            print("Visiting URL:", current_url)
             html_content = await fetch_url(current_url, session)
             if html_content is None:
-                print("HTML content is None for URL:", current_url)
                 continue
             soup = BeautifulSoup(html_content, 'html.parser')
+            all_text = []
             for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
                 if not tag.find_parent(['footer', 'aside']):
-                    text = tag.get_text(strip=True) + '\n'
-                    yield current_url, text
-            # Add new pages to the queue
+                    text = tag.get_text(strip=True)
+                    all_text.append(text)
+            if all_text:
+                await submit_to_kb(current_url, "\n".join(all_text), dataset_id, session)
             for link in soup.find_all('a', href=True):
                 href = urljoin(current_url, link['href'])
-                if href.startswith('http') and base_domain in href and href not in visited:
-                    if not href.endswith(config.unwanted_extensions):
-                        print("Adding URL to queue:", href)
+                if href.startswith('http') and base_domain in urlparse(href).netloc and href not in visited:
+                    if not any(href.endswith(ext) for ext in config.unwanted_extensions):
                         queue.add(href)
     except Exception as e:
-        print("Exception occurred during scraping:", e)
-        pass  # Silently ignore any errors
-
-# Async function to submit data to KB API
-async def submit_to_kb(url, text, dataset_id, session):
-    try:
-        api_url = f"{config.KB_BASE_URL}/v1/datasets/{dataset_id}/document/create_by_text"
-        headers = {"Authorization": f"Bearer {config.KB_API_KEY}", "Content-Type": "application/json"}
-        payload = {"name": url, "text": text, "indexing_technique": "high_quality"}
-        async with session.post(api_url, headers=headers, json=payload) as response:
-            if response.status != 200:
-                print("Failed to submit:", response.status)
-    except Exception as e:
-        print("API submission error:", e)
+        raise HTTPException(status_code=500, detail=f"Error during site scraping: {str(e)}")
