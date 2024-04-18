@@ -67,7 +67,7 @@ async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTask
     )
 
     # Return the PDF file directly in the response
-    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
+    return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
 @app.post("/convert_urls", operation_id="convert_urls_to_pdfs")
@@ -89,7 +89,7 @@ async def convert_urls_to_pdfs(request: ConvertURLsRequest, background_tasks: Ba
         )
 
     # Return the PDF file directly in the response
-    return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
+    return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Root endpoint serving index.html directly
 @app.get("/", include_in_schema=False)
