@@ -101,11 +101,11 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
     filename_base = '-'.join(filter(None, path_segments)) or parsed_url.netloc
     filename_base = re.sub(r'[^a-zA-Z0-9\-\.]', '-', filename_base)  # Replace non-allowed characters with hyphens
     filename_base = re.sub(r'[_]+', '-', filename_base)  # Convert any underscores to hyphens
-    filename_base = re.sub(r'-+', '-', filename_base)  # Avoid multiple consecutive hyphens
+    filename_base = re.sub(r'-{2,}', '-', filename_base)  # Consolidate multiple consecutive hyphens into one
 
     # Check for root domain without path
-    if not filename_base or filename_base == parsed_url.netloc:
-        filename_base = parsed_url.netloc.split('.')[0]  # Use the domain name part only
+    if filename_base == parsed_url.netloc:
+        filename_base = parsed_url.netloc.split('.')[0]  # Use the domain name part only, without TLD
 
     datetime_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     output_filename = f"{filename_base}-{datetime_suffix}.pdf"
@@ -129,6 +129,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
+
 if config.DIFY:
 
     class KBCreationRequest(BaseModel):
@@ -149,11 +150,18 @@ if config.DIFY:
             "Content-Type": "application/json"
         }
         payload = {"name": request.name}
+
         async with aiohttp.ClientSession() as session:
             async with session.post(api_url, headers=headers, json=payload) as response:
-                if response.status != 200:
-                    raise HTTPException(status_code=response.status, detail="API request failed to create the KB.")
-        return JSONResponse(status_code=200, content={"message": f"Knowledge Base {request.name} created successfully."})
+                if response.status == 200:
+                    # Parse the response data to get the ID
+                    response_data = await response.json()
+                    kb_id = response_data.get("id", "")
+                    return JSONResponse(status_code=200, content={"message": f"Knowledge Base '{request.name}' created successfully.", "id": kb_id})
+                else:
+                    # Handle non-200 responses
+                    response_data = await response.text()
+                    raise HTTPException(status_code=response.status, detail=f"API request failed to create the KB. Details: {response_data}")
 
     @app.post("/kb-scraper/", operation_id="web_to_kb")
     async def scrape_to_kb(request: KBSubmissionRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
