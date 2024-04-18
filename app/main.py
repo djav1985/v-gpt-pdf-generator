@@ -67,7 +67,7 @@ class ConvertURLsRequest(BaseModel):
 @app.post("/create", operation_id="create_pdf")
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
     # Default CSS
-    default_css = "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: darkblue; } p { margin: 0.5em 0; } a { color: blue; text-decoration: none; }"
+    default_css = "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }"
 
     # Use provided CSS or the default
     css_content = request.css_content if request.css_content else default_css
