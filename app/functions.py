@@ -23,7 +23,7 @@ def load_configuration():
     return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTEGRATION
 
 # Load configuration on startup
-BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTERGRATION = load_configuration()
+BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, unwanted_extensions, DIFY_INTEGRATION = load_configuration()
 
 # PDF generation tasks
 async def generate_pdf(html_content: str, css_content: str, output_path: Path):
@@ -31,7 +31,7 @@ async def generate_pdf(html_content: str, css_content: str, output_path: Path):
         css = CSS(string=css_content) if css_content else CSS(string="body { font-family: Arial; }")
         HTML(string=html_content).write_pdf(target=output_path, stylesheets=[css])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print("Error creating PDF:", e)
 
 # Async function to fetch HTML content using aiohttp
 async def fetch_html_content(url):
