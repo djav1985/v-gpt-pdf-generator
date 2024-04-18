@@ -60,7 +60,7 @@ class CreatePDFRequest(BaseModel):
 
 # Request model for converting URLs to PDFs
 class ConvertURLsRequest(BaseModel):
-    urls: str = Field(..., description="Comma-separated list of URLs to be converted into PDFs. Each URL should return HTML content that can be rendered into a PDF.")
+    urls: str = Field(..., description="Comma-separated list of upto 5 URLs to be converted into PDFs. Each URL should return HTML content that can be rendered into a PDF.")
 
 
 # Endpoint for creating a new PDF
