@@ -13,11 +13,11 @@ def load_configuration():
     # The base URL for the application, defaulting to "http://localhost"
     BASE_URL = os.getenv("BASE_URL", "http://localhost")
     # The API key for authentication
-    DIFY_INTERGRATION = os.getenv("DIFY_INTERGRATION")
+    DIFY_INTEGRATION = os.getenv("DIFY_INTEGRATION")
     API_KEY = os.getenv("API_KEY")
     KB_API_KEY = os.getenv("KB_API_KEY")
     KB_BASE_URL = os.getenv("KB_BASE_URL")
-    return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY
+    return BASE_URL, API_KEY, KB_BASE_URL, KB_API_KEY, DIFY_INTEGRATION
 
 # Function to generate a PDF from provided HTML and CSS content
 def generate_pdf(html_content: str, css_content: str, output_path: str):
