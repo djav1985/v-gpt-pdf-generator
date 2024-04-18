@@ -1,6 +1,7 @@
 # Importing required libraries and modules
 import os
 import aiohttp
+from pathlib import Path
 from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
 from fastapi import HTTPException, BackgroundTasks
