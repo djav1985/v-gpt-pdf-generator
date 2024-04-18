@@ -63,16 +63,16 @@ def cleanup_downloads_folder(folder_path: str):
     except Exception as e:
         print("Cleanup error:", e)
         
-async def fetch_url(current_url, session, unwanted_extensions):
+async def fetch_url(current_url, session):
     async with session.get(current_url) as response:
         if response.status == 200:
-            if current_url.endswith(unwanted_extensions):
+            if current_url.endswith(config.unwanted_extensions):
                 return None
             return await response.text()
         else:
             return None
 
-async def scrape_site(initial_url, session, unwanted_extensions):
+async def scrape_site(initial_url, session):
     print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
@@ -85,7 +85,7 @@ async def scrape_site(initial_url, session, unwanted_extensions):
                 continue
             visited.add(current_url)
             print("Visiting URL:", current_url)
-            html_content = await fetch_url(current_url, session,  unwanted_extensions)
+            html_content = await fetch_url(current_url, session)
             if html_content is None:
                 print("HTML content is None for URL:", current_url)
                 continue
@@ -98,7 +98,7 @@ async def scrape_site(initial_url, session, unwanted_extensions):
             for link in soup.find_all('a', href=True):
                 href = urljoin(current_url, link['href'])
                 if href.startswith('http') and base_domain in href and href not in visited:
-                    if not href.endswith(unwanted_extensions):
+                    if not href.endswith(config.unwanted_extensions):
                         print("Adding URL to queue:", href)
                         queue.add(href)
     except Exception as e:
