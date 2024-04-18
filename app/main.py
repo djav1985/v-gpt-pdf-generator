@@ -1,6 +1,6 @@
 # Importing necessary modules and libraries
 from fastapi import FastAPI, HTTPException, BackgroundTasks  # FastAPI framework components
-from fastapi.responses import FileResponse  # Response class for serving files
+from fastapi.responses import FileResponse, JSONResponse  # Response class for serving files
 from fastapi.staticfiles import StaticFiles  # Serve static files
 from fastapi import FastAPI, HTTPException, Security, Depends, BackgroundTasks
 from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
@@ -54,19 +54,27 @@ class ConvertURLsRequest(BaseModel):
 # Endpoint for creating a new PDF
 @app.post("/create", operation_id="create_pdf")
 async def create_pdf(request: CreatePDFRequest, background_tasks: BackgroundTasks, api_key: str = Depends(get_api_key)):
-    # Define the output path for the generated PDF
     output_path = Path("/app/downloads") / f"{request.output_filename}"
 
     # Start the background task to generate the PDF
     background_tasks.add_task(
-        executor.submit,
         generate_pdf,
         html_content=request.html_content,
         css_content=request.css_content,
         output_path=output_path
     )
 
-    # Return the PDF file directly in the response
+    start_time = time.time()  # Record the start time for timeout tracking
+    # Wait for the file to exist
+    while not output_path.exists():
+        await asyncio.sleep(1)  # Pause for a second and check again
+        if time.time() - start_time > 30:  # Timeout after 30 seconds
+            # Construct the URL where the PDF will eventually be available
+            pdf_url = f"{BASE_URL}/downloads/{request.output_filename}"
+            # Return a JSON response indicating the process has started and providing the download URL
+            return JSONResponse(status_code=202, content={"detail": "PDF generation is still in progress. Please check the URL after some time.", "url": pdf_url})
+
+    # If the file is ready within the timeout, return it
     return FileResponse(path=output_path, filename=request.output_filename, media_type='application/pdf')
 
 # Endpoint for converting URLs to PDFs
