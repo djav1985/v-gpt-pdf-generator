@@ -85,7 +85,8 @@ async def scrape_site(initial_url, session, unwanted_extensions):
     print("Scraping site started...")
     queue = set([initial_url])
     visited = set()
-    base_domain = urlparse(initial_url).netloc
+    main_domain = urlparse(initial_url).netloc.split('.')[-2] + '.' + urlparse(initial_url).netloc.split('.')[-1]  # This will capture something like vontainment.com
+
     try:
         while queue:
             current_url = queue.pop()
@@ -94,25 +95,30 @@ async def scrape_site(initial_url, session, unwanted_extensions):
                 continue
             visited.add(current_url)
             print("Visiting URL:", current_url)
-            html_content = await fetch_url(current_url, session,  unwanted_extensions)
+            html_content = await fetch_url(current_url, session, unwanted_extensions)
             if html_content is None:
                 print("HTML content is None for URL:", current_url)
                 continue
+
             soup = BeautifulSoup(html_content, 'html.parser')
             for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p']):
                 if not tag.find_parent(['footer', 'aside']):
                     text = tag.get_text(strip=True) + '\n'
                     yield current_url, text
+
             # Add new pages to the queue
             for link in soup.find_all('a', href=True):
                 href = urljoin(current_url, link['href'])
-                if href.startswith('http') and base_domain in href and href not in visited:
-                    if not href.endswith(unwanted_extensions):
+                href_parsed = urlparse(href)
+                href_domain = href_parsed.netloc.split('.')[-2] + '.' + href_parsed.netloc.split('.')[-1]
+
+                if href.startswith('http') and href_domain == main_domain and href not in visited and href not in queue:
+                    if not any(href.endswith(ext) for ext in unwanted_extensions):
                         print("Adding URL to queue:", href)
                         queue.add(href)
     except Exception as e:
         print("Exception occurred during scraping:", e)
-        pass  # Silently ignore any errors
+
 
 # Asynchronous function to submit data to KB API
 async def submit_to_kb_api(url, text, dataset_id, indexing_technique, session):
