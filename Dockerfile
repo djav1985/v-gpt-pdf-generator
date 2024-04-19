@@ -1,5 +1,5 @@
-# Use an official Python runtime as a parent image
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10
+# Use an official Python runtime based on Alpine as a parent image
+FROM python:3.10-alpine
 
 # Set the working directory in the container
 WORKDIR /app
@@ -7,17 +7,17 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY ./app /app
 
-# Install any needed packages specified in app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Install necessary system dependencies and Python packages in one RUN command
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
-# Update the package list
-RUN apt-get update -y
+# Expose port 80 to the outside world
+EXPOSE 80
 
-# Install the dependencies for WeasyPrint
-RUN apt-get install -y --no-install-recommends python3-dev python3-pip python3-setuptools python3-wheel python3-cffi libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
-
-# Clean up
-RUN rm -rf /var/lib/apt/lists/*
-
-# Run the FastAPI application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# Run the FastAPI application using Gunicorn with Uvicorn workers
+CMD ["gunicorn", "main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80"]
