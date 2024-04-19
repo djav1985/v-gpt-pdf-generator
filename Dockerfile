@@ -1,5 +1,7 @@
-# Use a lighter base image if possible, such as an Alpine version
-FROM python:3.10-alpine AS builder
+
+# Use an official Python runtime based on Alpine as a parent image
+FROM python:3.10-alpine
+
 
 WORKDIR /app
 
@@ -8,18 +10,19 @@ RUN apk add --no-cache libffi-dev gcc musl-dev && \
     python -m venv /venv && \
     . /venv/bin/activate
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    find /venv -type d -name __pycache__ -exec rm -rf {} +
 
-# Final stage: Use the same base image for consistency
-FROM python:3.10-alpine
+# Install necessary system dependencies and Python packages in one RUN command
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    python3-dev \
+    libffi-dev \
+    openssl-dev && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
-WORKDIR /app
-COPY --from=builder /venv /venv
+# Expose port 80 to the outside world
+EXPOSE 80
 
-ENV PATH="/venv/bin:$PATH"
+# Run the FastAPI application using Gunicorn with Uvicorn workers
+CMD ["gunicorn", "main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:80"]
 
-COPY . .
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
