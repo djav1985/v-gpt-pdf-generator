@@ -53,7 +53,7 @@ jobs:
         uses: docker/metadata-action@v3
         id: meta
         with:
-          images: yourusername/yourrepositoryname
+          images: vontainment/v-gpt-pdf-generator
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
