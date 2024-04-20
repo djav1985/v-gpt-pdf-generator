@@ -12,13 +12,13 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code and setup Docker
+      - name: Check out code
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # specify the Python version
+          python-version: '3.9'
 
       - name: Cache Python dependencies
         uses: actions/cache@v3
@@ -27,7 +27,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-        
+
       - name: Install dependencies
         run: pip install -r app/requirements.txt
 
@@ -49,7 +49,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Extract metadata and Build & Push Docker image
+      - name: Extract metadata
         uses: docker/metadata-action@v3
         id: meta
         with:
@@ -59,3 +59,13 @@ jobs:
             type=semver,pattern={{version}}
             type=sha,priority=100
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
