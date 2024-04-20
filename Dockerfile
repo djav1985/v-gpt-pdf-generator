@@ -7,8 +7,8 @@ RUN apk add --no-cache --virtual .build-deps gcc musl-dev linux-headers \
     && pip install --no-cache-dir -r /app/requirements.txt \
     && apk del .build-deps
 
-# Copy application files
-COPY . .
+# Copy the current directory contents into the container at /app
+COPY ./app /app
 
 # Stage 2: Runtime environment
 FROM python:3.11-alpine
