@@ -1,18 +1,24 @@
-# Use an official Python runtime based on Alpine as a parent image
-FROM python:3.10-alpine
-
-# Set the working directory in the container
+# Stage 1: Build environment
+FROM python:3.11-alpine AS build
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY ./app /app
+# Install build dependencies and Python packages in a single RUN command
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev linux-headers \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apk del .build-deps
 
-# Install system dependencies required for Python packages and optimize install process
-RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev && \
-    pip install --no-cache-dir -r /app/requirements.txt
+# Copy application files
+COPY . .
 
-# Expose port 80 to the outside world
-EXPOSE 80
+# Stage 2: Runtime environment
+FROM python:3.11-alpine
+WORKDIR /app
 
-# Run uvicorn when the container launches
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# Copy only the necessary files from the build stage
+COPY --from=build /app .
+
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
