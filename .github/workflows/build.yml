@@ -15,6 +15,22 @@ jobs:
       - name: Check out code and setup Docker
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # or any version you need
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+        
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Login and Set up Docker Buildx
         uses: docker/login-action@v2
         with:
@@ -42,4 +58,3 @@ jobs:
             type=semver,pattern={{version}}
             type=sha,priority=100
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type⬤
