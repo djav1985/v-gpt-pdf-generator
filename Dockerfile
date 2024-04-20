@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install build dependencies and Python packages in a single RUN command
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev linux-headers \
-    && pip install --no-cache-dir -r app/requirements.txt \
+    && pip install --no-cache-dir -r /app/requirements.txt \
     && apk del .build-deps
 
 # Copy application files
