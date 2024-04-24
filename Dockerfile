@@ -1,21 +1,18 @@
-# Stage 1: Build environment
-FROM python:3.11-alpine AS build
+# Use an official Python runtime based on Alpine as a parent image
+FROM python:3.10-alpine
+
+# Set the working directory in the container
 WORKDIR /app
+
 # Copy the current directory contents into the container at /app
 COPY ./app /app
 
-# Install build dependencies and Python packages in a single RUN command
-RUN apk update && \
-    apk add --no-cache --virtual .build-deps gcc musl-dev linux-headers \
-    && pip install --no-cache-dir -r /app/requirements.txt \
-    && apk del .build-deps
+# Install system dependencies required for Python packages and optimize install process
+RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
-# Stage 2: Runtime environment
-FROM python:3.11-alpine
-WORKDIR /app
-# Copy only the necessary files from the build stage
-COPY --from=build /app .
-# Expose port
+# Expose port 80 to the outside world
 EXPOSE 80
+
 # Run the application with Gunicorn using Uvicorn workers
 CMD ["gunicorn", "main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--workers", "4", "--bind", "0.0.0.0:80"]
