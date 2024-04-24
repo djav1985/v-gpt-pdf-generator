@@ -16,6 +16,6 @@ WORKDIR /app
 # Copy only the necessary files from the build stage
 COPY --from=build /app .
 # Expose port
-EXPOSE 8000
+EXPOSE 80
 # Run the application with Gunicorn using Uvicorn workers
-CMD ["gunicorn", "main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--workers", "4", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--workers", "4", "--bind", "0.0.0.0:80"]
