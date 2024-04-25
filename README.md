@@ -1,4 +1,8 @@
-# FastAPI Application with Docker
+![Header](/images/header.png)
+
+# v-gpt-pdf-api
+
+## Description
 
 This repository contains a FastAPI application designed to generate PDFs from HTML and CSS content. It's packaged with Docker and orchestrated using Docker Compose, simplifying development and deployment processes. Openapi spec at /openapi.json
 
