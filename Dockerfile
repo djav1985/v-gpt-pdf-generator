@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 EXPOSE 8050
 
 
-# Set an environment variable for workers with a default value
-ENV WORKERS=2
+# Define environment variable
+ENV WORKERS 1
 
-# Command to run the app using Uvicorn
-CMD sh -c  "gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers ${WORKERS} --bind 0.0.0.0:8050"
+# Run app.py when the container launches with preload enabled
+CMD ["sh", "-c", "gunicorn main:app --worker-class uvicorn.workers.UvicornWorker --workers ${WORKERS} --bind 0.0.0.0:8050 --preload"]
