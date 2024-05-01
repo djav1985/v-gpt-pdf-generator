@@ -3,7 +3,7 @@
     image: vontainment/gpt-pdf-generator:dev  # Use your appropriate image
     restart: always
     ports:
-      - "8075:80"  # Map port 80 of the container to port 80 on the host
+      - "8050:8050"  # Map port 80 of the container to port 80 on the host
     environment:
       BASE_URL: https://dify.hugev.xyz
       DIFY: true

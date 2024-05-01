@@ -12,7 +12,10 @@ RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev openssl-dev && \
     pip install --no-cache-dir -r /app/requirements.txt
 
 # Expose port 80 to the outside world
-EXPOSE 80
+EXPOSE 8050
 
-# Run uvicorn when the container launches
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+# Set an environment variable for workers with a default value
+ENV UVICORN_WORKERS=3
+
+# Command to run the app using Uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8050", "--workers", "${UVICORN_WORKERS}"]
