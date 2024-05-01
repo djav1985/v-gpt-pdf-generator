@@ -28,7 +28,7 @@ jobs:
         uses: docker/metadata-action@v5
         id: meta
         with:
-          images: vontainment/v-gpt-pdf-generator
+          images: vontainment/gpt-pdf-generator
           flavor: latest=false
           tags: |
             type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
