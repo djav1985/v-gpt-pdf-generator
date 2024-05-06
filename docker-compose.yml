@@ -5,9 +5,11 @@
     ports:
       - "8050:8050"  # Map port 80 of the container to port 80 on the host
     environment:
-      BASE_URL: https://dify.hugev.xyz
+      BASE_URL: http://localhost
       DIFY: true
-      KB_BASE_URL: https://dify.hugev.xyz
+      KB_BASE_URL: http://localhost
       KB_API_KEY: dataset-quUOrwDysLNRlyKE7RhcIPej
+      WORKERS: 1 #uvicorn workers 1 should be enough for personal use
+      UVICORN_CONCURRENCY: 8 #this controls the mac connections. Anything over the API_concurrancy value is put in query pool. Anything over this number is rejected.
     volumes:
       - pdf-data:/app/downloads  # Ensure downloads directory is persistent
