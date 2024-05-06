@@ -129,9 +129,7 @@ async def convert_url_to_pdf(request: ConvertURLRequest, background_tasks: Backg
 
     return FileResponse(path=output_path, filename=output_filename, media_type='application/pdf')
 
-
 if config.DIFY:
-
     class KBCreationRequest(BaseModel):
         """Model for creating a Knowledge Base."""
         name: str = Field(..., description="Name of the knowledge base to be created.")
@@ -168,6 +166,7 @@ if config.DIFY:
         # Add task with correct parameters
         background_tasks.add_task(scrape_site, request.website_url, request.dataset_id)
         return {"message": f"Scraping {request.website_url} to Knowledge Base {request.dataset_id} initiated. Check dataset for updates."}
+    pass
 
 # Root endpoint serving index.html directly
 @app.get("/", include_in_schema=False)
