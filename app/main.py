@@ -8,7 +8,7 @@ from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
 # Importing local modules
 from functions import AppConfig
 
-from routes.pdf import pdf_router
+from routes.create import pdf_router
 from routes.dify import dify_router
 from routes.root import root_router
 
