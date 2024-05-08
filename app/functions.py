@@ -5,8 +5,7 @@ import aiofiles.os
 from pathlib import Path
 from datetime import datetime, timedelta
 from weasyprint import HTML, CSS
-from fastapi import HTTPException, Depends
-
+from fastapi import HTTPException, Depends, HTTPBearer
 
 
 # PDF generation tasks
