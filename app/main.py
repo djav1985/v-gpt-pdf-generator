@@ -1,9 +1,8 @@
 # main.py
 import os
 
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, Security
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.responses import FileResponse
 
 from routes.create import pdf_router
