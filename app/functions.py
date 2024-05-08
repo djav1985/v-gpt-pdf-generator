@@ -38,3 +38,14 @@ def cleanup_downloads_folder(folder_path: str):
     except Exception as e:
         print(f"Cleanup error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+
+
+# This function checks if the provided API key is valid or not
+async def get_api_key(
+    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
+):
+    if os.getenv("API_KEY") and (
+        not credentials or credentials.credentials != os.getenv("API_KEY")
+    ):
+        raise HTTPException(status_code=403, detail="Invalid or missing API key")
+    return credentials.credentials if credentials else None

@@ -10,20 +10,6 @@ from routes.create import pdf_router
 from routes.root import root_router
 
 
-# Setup the bearer token authentication scheme
-bearer_scheme = HTTPBearer(auto_error=False)
-
-
-async def get_api_key(
-    credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
-):
-    if os.getenv("API_KEY") and (
-        not credentials or credentials.credentials != os.getenv("API_KEY")
-    ):
-        raise HTTPException(status_code=403, detail="Invalid or missing API key")
-    return credentials.credentials if credentials else None
-
-
 # FastAPI application instance
 app = FastAPI(
     title="PDF Generation API",

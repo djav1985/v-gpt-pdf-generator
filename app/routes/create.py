@@ -11,7 +11,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, JSONResp
 from starlette.responses import FileResponse
 
 from models import CreatePDFRequest
-from functions import generate_pdf, cleanup_downloads_folder
+from functions import generate_pdf, cleanup_downloads_folder, get_api_key
 
 
 pdf_router = APIRouter()
