@@ -17,4 +17,4 @@ services:
       - pdf-data:/app/downloads  # Ensure downloads directory is persistent
 
 volumes:
-  db-data:
+  pdf-data:
