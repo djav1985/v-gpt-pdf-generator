@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from starlette.responses import JSONResponse
 
 from models import CreatePDFRequest
 from functions import generate_pdf, cleanup_downloads_folder, get_api_key
