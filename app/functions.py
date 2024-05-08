@@ -1,14 +1,14 @@
 # Importing required libraries and modules
 import os
 import asyncio
-import aiofiles.os
+import aiofiles
 from pathlib import Path
 from datetime import datetime, timedelta
 
 from weasyprint import HTML, CSS
 
 from fastapi import HTTPException, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import Security, HTTPBearer, HTTPAuthorizationCredentials
 
 
 # PDF generation tasks
