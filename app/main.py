@@ -9,13 +9,12 @@ from starlette.responses import FileResponse
 from routes.create import pdf_router
 from routes.root import root_router
 
-
 # FastAPI application instance
 app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
-    servers=[{"url": f"{config.KB_BASE_URL}", "description": "Base API server"}],
+    servers=[{"url": os.getenv('BASE_URL'), "description": "Base API server"}],
 )
 
 # Including Routers for different endpoints
