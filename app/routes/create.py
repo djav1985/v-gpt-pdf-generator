@@ -56,7 +56,7 @@ async def create_pdf(
     while not output_path.exists():
         await asyncio.sleep(1)
         if time.time() - start_time > 10:
-            pdf_url = f"{os.getenv("os.getenv("BASE_URL")")}/downloads/{request.output_filename}"
+            pdf_url = f"{os.getenv('BASE_URL')}/downloads/{request.output_filename}"
             return JSONResponse(
                 status_code=202,
                 content={
