@@ -4,12 +4,16 @@ FROM python:3.9-slim as base
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies for WeasyPrint
 RUN apt-get update && apt-get install -y \
-    gcc \
+    libgirepository1.0-dev \
+    gobject-introspection \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
     libffi-dev \
-    libssl-dev \
-    && apt-get clean \
+    shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only the requirements file
@@ -26,7 +30,7 @@ EXPOSE 8050
 
 # Define environment variables
 ENV WORKERS=1
-ENV UVICORN_CONCURRENCY=16
+ENV UVICORN_CONCURRENCY=32
 
 # Set the command to run your FastAPI application with Uvicorn and environment variables
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8050 --workers $WORKERS --limit-concurrency $UVICORN_CONCURRENCY"]
