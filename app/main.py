@@ -1,9 +1,10 @@
 # main.py
 import os  # Used for accessing environment variables
 
-from fastapi import FastAPI, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
+from starlette.responses import FileResponse
 
 # Importing local modules
 from functions import AppConfig

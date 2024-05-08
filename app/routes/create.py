@@ -1,14 +1,20 @@
 # /routes/create.py
-from fastapi import APIRouter, BackgroundTasks, Depends, FileResponse, JSONResponse
-from pathlib import Path  # Corrected import for Path
-from urllib.parse import urlparse, urlunparse
 import re
 import random
 import string
 import asyncio
 import time
+
 from datetime import datetime
-from config import get_api_key  # Assuming 'config' is a module with a function named 'get_api_key'
+from fastapi import APIRouter, BackgroundTasks, Depends, JSONResponse, HTTPException
+from starlette.responses import FileResponse
+from pathlib import Path  # Corrected import for Path
+from urllib.parse import urlparse, urlunparse
+
+
+from config import (
+    get_api_key,
+)  # Assuming 'config' is a module with a function named 'get_api_key'
 from models import CreatePDFRequest, ConvertURLRequest  # Duplicate import removed
 
 # Importing local modules

@@ -4,8 +4,10 @@ import re
 import aiohttp
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import urljoin
+from datetime import timedelta
 from weasyprint import HTML, CSS
-from fastapi import HTTPException, BackgroundTasks
+from fastapi import HTTPException
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urlunparse
 
