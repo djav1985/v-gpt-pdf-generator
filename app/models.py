@@ -17,11 +17,3 @@ class CreatePDFRequest(BaseModel):
         default=None,
         description="Optional filename, use - for spaces and do not include the extension.",
     )
-
-
-# Request model for converting a single URL to PDF
-class ConvertURLRequest(BaseModel):
-    url: str = Field(
-        ...,
-        description="URL to be converted into a PDF. The URL should return HTML content that can be rendered into a PDF.",
-    )

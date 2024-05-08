@@ -1,20 +1,14 @@
 # main.py
-import os  # Used for accessing environment variables
+import os
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, Security
 from fastapi.staticfiles import StaticFiles
-from fastapi.security.http import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.responses import FileResponse
 
-# Importing local modules
-from functions import AppConfig
-
 from routes.create import pdf_router
-from routes.dify import dify_router
 from routes.root import root_router
 
-# Load configuration on startup
-config = AppConfig()
 
 # Setup the bearer token authentication scheme
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -23,8 +17,8 @@ bearer_scheme = HTTPBearer(auto_error=False)
 async def get_api_key(
     credentials: HTTPAuthorizationCredentials = Security(bearer_scheme),
 ):
-    if config.API_KEY and (
-        not credentials or credentials.credentials != config.API_KEY
+    if os.getenv("API_KEY") and (
+        not credentials or credentials.credentials != os.getenv("API_KEY")
     ):
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
     return credentials.credentials if credentials else None
@@ -40,10 +34,6 @@ app = FastAPI(
 
 # Including Routers for different endpoints
 app.include_router(pdf_router)
-
-# Conditionally include the root_router based on EMBEDDING_ENDPOINT env var
-if os.getenv("DIFY") == "true":
-    app.include_router(dify_router)
 
 # Including Routers for different endpoints
 app.include_router(root_router)
