@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 
 from weasyprint import HTML, CSS
 
-from fastapi import HTTPException, Depends
-from fastapi.security import Security, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Security, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 
 # PDF generation tasks
