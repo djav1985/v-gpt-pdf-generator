@@ -34,7 +34,7 @@ jobs:
         uses: docker/metadata-action@v5
         id: meta
         with:
-          images: vontainment/gpt-email-api
+          images: vontainment/gpt-pdf-generator
           flavor: latest=false
           tags: |
             type=raw,value=main,enable=${{ gitea.ref == 'refs/heads/main' }}
