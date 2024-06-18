@@ -15,6 +15,6 @@ services:
       UVICORN_CONCURRENCY: 32 #this controls the mac connections. Anything over the API_concurrancy value is put in query pool. Anything over this number is rejected.
     volumes:
       - pdf-data:/app/downloads  # Ensure downloads directory is persistent
-
+ 
 volumes:
   pdf-data:
