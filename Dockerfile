@@ -9,8 +9,8 @@ COPY /cache /app/cache
 COPY requirements.txt /app
 
 # Install Python dependencies in a virtual environment
-RUN python -m venv /app/venv &&
-    . /app/venv/bin/activate &&
+RUN python -m venv /app/venv && \
+    . /app/venv/bin/activate && \
     pip install --no-index --find-links /app/cache -r requirements.txt
 
 # Final stage
