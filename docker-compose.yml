@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     network_mode: bridge
     ports:
-      - "8050:8050"  # Map port 80 of the container to port 80 on the host
+      - "8050:8888"  # Map port 80 of the container to port 80 on the host
     environment:
       BASE_URL: https://api.servicesbyv.com/pdf # Set this to your actual base URL
       ROOT_PATH: /pdf
@@ -15,6 +15,6 @@ services:
       UVICORN_CONCURRENCY: 32 #this controls the mac connections. Anything over the API_concurrancy value is put in query pool. Anything over this number is rejected.
     volumes:
       - pdf-data:/app/downloads  # Ensure downloads directory is persistent
- 
+
 volumes:
   pdf-data:
