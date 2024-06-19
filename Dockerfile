@@ -19,13 +19,18 @@ FROM python:3.10-slim
 # Set the working directory
 WORKDIR /app
 
+# Install system dependencies (including GObject introspection)
+RUN apt-get update && apt-get install -y \
+    libgirepository1.0-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy the virtual environment from the builder stage
 COPY --from=builder /app/venv /app/venv
 
 # Copy the rest of the application
 COPY ./app /app
 
-# Expose port 8040 to the outside world
+# Expose port 8888 to the outside world
 EXPOSE 8888
 
 # Define environment variables
