@@ -19,9 +19,11 @@ FROM python:3.10-slim
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies (including GObject introspection)
+# Install system dependencies for WeasyPrint and related libraries
 RUN apt-get update && apt-get install -y \
-    libgirepository1.0-dev \
+    libcairo2 \
+    libpango-1.0-0 \
+    libgdk-pixbuf2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the virtual environment from the builder stage
