@@ -6,7 +6,6 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
 from routes.create import pdf_router
-from routes.root import root_router
 
 # FastAPI application instance
 app = FastAPI(
@@ -20,8 +19,7 @@ app = FastAPI(
 # Including Routers for different endpoints
 app.include_router(pdf_router)
 
-# Including Routers for different endpoints
-app.include_router(root_router)
-
 # Mount a static files directory at /downloads to serve generated PDFs
-app.mount("/downloads", StaticFiles(directory="/app/downloads"), name="downloads")
+app.mount(
+    os.getenv("ROOT_PATH", "") + "/downloads", StaticFiles(directory="/app/downloads"), name="downloads"
+)
