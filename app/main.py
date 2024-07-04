@@ -12,8 +12,7 @@ app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
-    root_path=os.getenv("ROOT_PATH", ""),
-    servers=[{"url": os.getenv("BASE_URL", ""), "description": "Base API server"}],
+    servers=[{"url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}", "description": "Base API server"}]
 )
 
 # Including Routers for different endpoints
@@ -21,5 +20,5 @@ app.include_router(pdf_router)
 
 # Mount a static files directory at /downloads to serve generated PDFs
 app.mount(
-"/downloads", StaticFiles(directory="/app/downloads"), name="downloads"
+    f"{os.getenv('ROOT_PATH', '')}/downloads", StaticFiles(directory="/app/downloads"), name="downloads"
 )
