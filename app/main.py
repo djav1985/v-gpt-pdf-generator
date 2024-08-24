@@ -22,5 +22,5 @@ app.include_router(pdf_router)
 
 # Mount a static files directory at /downloads to serve generated PDFs
 app.mount(
-    f"{os.getenv('ROOT_PATH', '')}/downloads", StaticFiles(directory="/app/downloads"), name="downloads"
+    "/downloads", StaticFiles(directory="/app/downloads"), name="downloads"
 )
