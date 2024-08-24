@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     libgdk-pixbuf2.0-0 \
     gir1.2-gtk-3.0 \
     gobject-introspection \
+    libffi-dev \
+    libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the virtual environment from the builder stage
