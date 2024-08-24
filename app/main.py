@@ -13,6 +13,7 @@ app = FastAPI(
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
     root_path=os.getenv('ROOT_PATH', '/'),
+    root_path_in_servers=False,
     servers=[{"url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}", "description": "Base API server"}]
 )
 
