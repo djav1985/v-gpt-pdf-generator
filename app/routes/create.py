@@ -15,7 +15,7 @@ from dependencies import generate_pdf, cleanup_downloads_folder, get_api_key
 pdf_router = APIRouter()
 
 
-@pdf_router.post(f"{os.getenv('ROOT_PATH', '/')}", operation_id="create_pdf")
+@pdf_router.post("/", operation_id="create_pdf")
 async def create_pdf(
     request: CreatePDFRequest,
     api_key: str = Depends(get_api_key),
