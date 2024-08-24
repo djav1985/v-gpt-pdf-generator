@@ -41,7 +41,7 @@ async def create_pdf(
         )
         return {
             "results": "PDF generation is still in progress. Please check the URL after some time.",
-            "url": f"{os.getenv('BASE_URL')}/downloads/{filename}",
+            "url": f"{os.getenv('BASE_URL')}{os.getenv('ROOT_PATH', '')}/downloads/{filename}",
         }
     except Exception as e:
         print(f"An error occurred: {e}")
