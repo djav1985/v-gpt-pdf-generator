@@ -18,62 +18,19 @@ import re
 # PDF generation tasks
 async def generate_pdf(pdf_title: str, body_content: str, css_content: str, output_path: Path, contains_code: bool):
     try:
-        # Define default CSS as a string using an f-string for formatting
+        # Define default CSS as a string using an f-string for formatting (minified version)
         default_css = f"""
-        @page {{
-            size: Letter;
-            margin: 0.5in;  /* Use a margin for content and space for the footer */
-            @bottom-left {{
-                content: "{pdf_title}";
-                font-size: 10px;
-                color: #555;
-            }}
-            @bottom-right {{
-                content: "Page " counter(page) " of " counter(pages);
-                font-size: 10px;
-                color: #555;
-            }}
-        }}
-        body {{
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #333;
-        }}
-        h1 {{
-            color: #66cc33;
-            margin-bottom: 40px; /* 40px space below h1 */
-            border-bottom: 2px solid #66cc33; /* Line under heading for separation */
-            padding-bottom: 10px; /* Space below the line */
-        }}
-        h2, h3, h4, h5, h6 {{
-            color: #4b5161;
-            margin-top: 20px;  /* Add space above subheadings */
-        }}
-        p {{
-            margin: 1em 0;  /* Consistent paragraph spacing */
-        }}
-        a {{
-            color: #0366d6;
-            text-decoration: none;
-        }}
-        a:hover {{
-            text-decoration: underline;  /* Indicate clickable links */
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;  /* Space below tables */
-        }}
-        th, td {{
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }}
-        th {{
-            background-color: #f4f4f4;
-            font-weight: bold;
-        }}
+        @page{{size:Letter;margin:0.5in;@bottom-left{{content:"{pdf_title}";font-size:10px;color:#555;}}@bottom-right{{content:"Page " counter(page) " of " counter(pages);font-size:10px;color:#555;}}}}
+        body{{font-family:'Arial',sans-serif;font-size:12px;line-height:1.5;color:#333;}}
+        h1{{color:#66cc33;margin-bottom:40px;border-bottom:2px solid #66cc33;padding-bottom:10px;}}
+        h2,h3,h4,h5,h6{{color:#4b5161;margin-top:20px;}}
+        p{{margin:1em 0;}}
+        a{{color:#0366d6;text-decoration:none;}}
+        a:hover{{text-decoration:underline;}}
+        table{{width:100%;border-collapse:collapse;margin-bottom:20px;}}
+        th,td{{border:1px solid #ddd;padding:8px;text-align:left;}}
+        th{{background-color:#f4f4f4;font-weight:bold;}}
+        pre,code{{padding:20px;border:1px solid #ccc;background-color:#f4f4f4;}}
         """
 
         # Initialize combined_css with the default CSS in its own <style> tag
