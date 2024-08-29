@@ -22,21 +22,23 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                 <style>
                     @page {{
                         size: Letter;
-                        margin: 0;
-                        @bottom-center {{
-                            content: "{pdf_title} - Page " counter(page) " of " counter(pages);
+                        margin: 0.5in;  /* Use a margin for content and space for the footer */
+                        @bottom-left {{
+                            content: "{pdf_title}";
                             font-size: 10px;
-                            color: #555;  /* Lighter footer text */
-                            padding-bottom: 0.2in;
+                            color: #555;
+                        }}
+                        @bottom-right {{
+                            content: "Page " counter(page) " of " counter(pages);
+                            font-size: 10px;
+                            color: #555;
                         }}
                     }}
                     body {{
                         font-family: 'Arial', sans-serif;
                         font-size: 12px;
                         line-height: 1.5;
-                        padding: 0.5in 0.5in 0.25in 0.5in;
-                        margin: 0;
-                        color: #333;  /* Darker text color for readability */
+                        color: #333;
                     }}
                     h1 {{
                         color: #66cc33;
