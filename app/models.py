@@ -6,7 +6,7 @@ from typing import Optional
 class CreatePDFRequest(BaseModel):
     pdf_title: str = Field(
         ...,
-        description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title<title>.",
+        description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title</title>.",
     )
     body_content: str = Field(
         ...,
@@ -22,7 +22,7 @@ class CreatePDFRequest(BaseModel):
     css_content: Optional[str] = Field(
         default=None,
         description=(
-            "Optional CSS styles to format the "body_content" useing selectors like tags, classes, and IDs. "
+            "Optional CSS styles to format the 'body_content' using selectors like tags, classes, and IDs. "
             "Provide custom styles or override default styles to achieve desired layout and design."
         ),
     )
