@@ -8,7 +8,7 @@ class CreatePDFRequest(BaseModel):
         ...,
         description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title<title>.",
     )
-    html_content: str = Field(
+    body_content: str = Field(
         ...,
         description=(
             "HTML content for the PDF body. This will be inserted inside the <body> element of the PDF document. "
@@ -22,7 +22,7 @@ class CreatePDFRequest(BaseModel):
     css_content: Optional[str] = Field(
         default=None,
         description=(
-            "Optional CSS styles to format the HTML content. Style elements using selectors like tags, classes, and IDs. "
+            "Optional CSS styles to format the "body_content" useing selectors like tags, classes, and IDs. "
             "Provide custom styles or override default styles to achieve desired layout and design."
         ),
     )
