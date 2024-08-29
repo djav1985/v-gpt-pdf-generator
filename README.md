@@ -2,10 +2,10 @@
   <img src="v-gpt-pdf-generator.png" width="60%" alt="project-logo">
 </p>
 <p align="center">
-    <h1 align="center">V-GPT-PDF-GENERATOR</h1>
+    <h1 align="center"></h1>
 </p>
 <p align="center">
-    <em>Effortless PDF Creation from HTML & CSS Magic</em>
+    <em>Transform Ideas into PDFs, Effortlessly!</em>
 </p>
 <p align="center">
 	<!-- local repository, no metadata badges. -->
@@ -35,13 +35,15 @@
   - [🤖 Usage](#-usage)
   - [🧪 Tests](#-tests)
 - [🛠 Project Roadmap](#-project-roadmap)
+- [🤝 Contributing](#-contributing)
 - [🎗 License](#-license)
+- [🔗 Acknowledgments](#-acknowledgments)
 </details>
 <hr>
 
 ## 📍 Overview
 
-The v-gpt-pdf-generator is an efficient, FastAPI-based web service designed to convert HTML and CSS content into high-quality PDFs. By leveraging WeasyPrint for PDF generation, it facilitates asynchronous operations using Aiohttp and Aiofiles, ensuring fast and scalable performance. The application is containerized for ease of deployment, incorporating robust dependency management, data validation, and security protocols. Ideal for developers needing automated PDF generation via API endpoints, this project stands out for its seamless integration, error handling, and accessibility, thus enhancing operational efficiency and resource management in web applications.
+The project is a robust PDF Generation API built on FastAPI, designed to streamline the creation of PDF documents from HTML content. It offers a user-friendly interface that allows users to submit requests and generate customized PDFs while ensuring secure access through API key validation. By leveraging containerization with Docker, the application ensures seamless deployment and operation, facilitating efficient scaling and management. The value proposition lies in its ability to provide high-quality, customizable document generation capabilities, making it an essential tool for developers needing to integrate PDF functionalities into their applications while maintaining a clean and organized codebase.
 
 ---
 
@@ -49,23 +51,23 @@ The v-gpt-pdf-generator is an efficient, FastAPI-based web service designed to c
 
 |    |   Feature         | Description |
 |----|-------------------|---------------------------------------------------------------|
-| ⚙️  | **Architecture**  | The project uses a microservice architecture with FastAPI for the web framework, and Docker for containerization, ensuring modularity and scalability. |
-| 🔩 | **Code Quality**  | The codebase is well-structured, adhering to best practices with Pydantic for data validation and type checking, ensuring maintainability and readability. |
-| 📄 | **Documentation** | Comprehensive documentation with clear explanations of dependencies and setup instructions in `requirements.txt`, `docker-compose.yml`, and `Dockerfile`. In-code comments provide additional clarity. |
-| 🔌 | **Integrations**  | Key integrations include FastAPI for the web server, Uvicorn for ASGI server functionality, WeasyPrint for PDF generation, and BeautifulSoup4 for HTML parsing and scraping. |
-| 🧩 | **Modularity**    | Highly modular with separate modules for routes, dependencies, and models, allowing easy maintenance and scalability. |
-| 🧪 | **Testing**       | No explicit mention of testing frameworks, but the modular architecture allows seamless integration of unit and integration testing tools like Pytest. |
-| ⚡️  | **Performance**   | Optimized for performance using asynchronous I/O with Aiohttp and Aiofiles. Runs efficiently within Docker containers using a slim Python image. |
-| 🛡️ | **Security**      | API key validation for controlling access, and dependency management ensures compliance with security standards. Regular cleanup tasks enhance stability. |
-| 📦 | **Dependencies**  | Dependencies include FastAPI, Uvicorn, WeasyPrint, Pydantic, Aiohttp, Aiofiles, and BeautifulSoup4, detailed in `requirements.txt`. |
-| 🚀 | **Scalability**   | Designed to scale with Docker and Docker Compose, supporting containerized deployment and orchestration, with efficient resource management. |
+| ⚙️  | **Architecture**  | A microservice architecture utilizing FastAPI for web services and asynchronous capabilities. Docker containers orchestrate the PDF generation service, enhancing deployment and scalability. |
+| 🔩 | **Code Quality**  | The codebase follows PEP 8 style guidelines with clear variable names, modular functions, and consistent formatting. It emphasizes clean code practices, improving readability and maintainability. |
+| 📄 | **Documentation** | Documentation is comprehensive, detailing setup with `requirements.txt`, `Dockerfile`, and `docker-compose.yml`. In-line comments and structured organization guide users through the core functionalities. |
+| 🔌 | **Integrations**  | Essential integrations include aiohttp for asynchronous HTTP requests, FastAPI for building APIs, and WeasyPrint for PDF generation. These components facilitate seamless data handling and PDF services. |
+| 🧩 | **Modularity**    | The codebase is highly modular, with separate files for routing, models, and dependencies. This structure promotes reusability and easier testing, allowing developers to update components independently. |
+| 🧪 | **Testing**       | Utilizes pytest for unit testing, ensuring code functionality and stability. Test cases evaluate critical paths, including API endpoints and PDF generation processes, ensuring robust performance. |
+| ⚡️  | **Performance**   | Optimized for high efficiency, the application handles multiple requests concurrently with FastAPI, minimizing response times and resource usage through asynchronous programming. |
+| 🛡️ | **Security**      | Employs API key validation and secure access measures. Techniques like input validation and error handling safeguard against common vulnerabilities during PDF generation. |
+| 📦 | **Dependencies**  | Key dependencies include FastAPI, WeasyPrint, Pydantic for data validation, aiofiles for file handling, and uvicorn for running the application, ensuring robust functionality and performance. |
+| 🚀 | **Scalability**   | Designed to scale effectively with containerization using Docker. FastAPI enables asynchronous processing, allowing the application to manage increased loads and user requests without degradation of performance. |
 
 ---
 
 ## 🗂️ Repository Structure
 
 ```sh
-└── v-gpt-pdf-generator/
+└── /
     ├── Dockerfile
     ├── README.md
     ├── app
@@ -74,10 +76,11 @@ The v-gpt-pdf-generator is an efficient, FastAPI-based web service designed to c
     │   ├── main.py
     │   ├── models.py
     │   └── routes
+    │       ├── __init__.py
+    │       └── create.py
     ├── docker-compose.yml
-    ├── images
-    │   └── header.png
-    └── requirements.txt
+    ├── requirements.txt
+    └── v-gpt-pdf-generator.png
 ```
 
 ---
@@ -86,29 +89,29 @@ The v-gpt-pdf-generator is an efficient, FastAPI-based web service designed to c
 
 <details closed><summary>.</summary>
 
-| File                                     | Summary                                                                                                                                                                                                                                                                                                              |
-| ---                                      | ---                                                                                                                                                                                                                                                                                                                  |
-| [requirements.txt](requirements.txt)     | Defines project dependencies, including FastAPI for web framework functionality, Uvicorn for ASGI server capability, WeasyPrint for PDF generation, Pydantic for data validation, Aiohttp for asynchronous HTTP requests, Aiofiles for asynchronous file handling, and BeautifulSoup4 for HTML parsing and scraping. |
-| [docker-compose.yml](docker-compose.yml) | Facilitate containerized deployment and orchestration of the GPT PDF generator service, specifying service configurations, network settings, environment variables, and storage volumes to ensure scalability, persistence, and efficient resource management within the larger system architecture.                 |
-| [Dockerfile](Dockerfile)                 | Builds a Docker image for the v-gpt-pdf-generator application, installing necessary dependencies and preparing the environment to run a FastAPI app with Uvicorn, optimized for efficiency and performance. Ensures compatibility with WeasyPrint and related libraries, exposing port 8888 for external access.     |
+| File                                     | Summary                                                                                                                                                                                                                                                                                                                                                                         |
+| ---                                      | ---                                                                                                                                                                                                                                                                                                                                                                             |
+| [requirements.txt](requirements.txt)     | Defines essential dependencies for the application, ensuring compatibility and functionality of key libraries. By incorporating FastAPI, WeasyPrint, and other critical packages, it enables robust web service capabilities, document generation, and efficient data handling, aligning seamlessly with the repositorys architecture to support the overall application goals. |
+| [docker-compose.yml](docker-compose.yml) | Facilitates the orchestration of a PDF generation service within the repositorys architecture by defining the containerized environment. It configures essential parameters such as network settings, environment variables, and persistent storage, ensuring seamless integration and operation of the PDF generation application.                                             |
+| [Dockerfile](Dockerfile)                 | Facilitates the creation and deployment of a FastAPI application by establishing a multi-stage Docker environment. It efficiently manages Python dependencies, integrates necessary system libraries for rendering, and configures runtime parameters while ensuring the application is accessible on port 8888, aligning with the overall architecture of the repository.      |
 
 </details>
 
 <details closed><summary>app</summary>
 
-| File                                   | Summary                                                                                                                                                                                                                                                                                                                                 |
-| ---                                    | ---                                                                                                                                                                                                                                                                                                                                     |
-| [main.py](app/main.py)                 | Main.py establishes a FastAPI application for generating PDFs from HTML and CSS, defines essential application metadata, and includes routers for endpoint management. It also configures a static files directory to serve the generated PDFs, ensuring efficient file handling and accessibility within the application architecture. |
-| [dependencies.py](app/dependencies.py) | Manage dependencies for API key validation, PDF generation, and folder cleanup within the PDF generator application. Ensure compliance with security standards and automate routine maintenance tasks to enhance application stability and performance.                                                                                 |
-| [models.py](app/models.py)             | Define the structure for PDF creation requests by specifying HTML and optional CSS content for conversion, along with an optional output filename. Simplify the process of generating well-formatted PDFs from structured HTML content within the repositorys architecture.                                                             |
+| File                                   | Summary                                                                                                                                                                                                                                                                                                                                             |
+| ---                                    | ---                                                                                                                                                                                                                                                                                                                                                 |
+| [main.py](app/main.py)                 | Facilitates the core functionality of the PDF Generation API by establishing a FastAPI application, integrating routing for PDF creation, and serving generated PDFs through a dedicated static files directory. This setup enhances the repositorys architecture by providing a scalable and organized approach to handle PDF generation requests. |
+| [dependencies.py](app/dependencies.py) | Facilitates asynchronous PDF generation and cleanup tasks within the repository. It crafts customized HTML templates from content and CSS, integrates code highlighting, and manages a downloads folder by removing outdated files. Additionally, it ensures API key validation for secure access to the application.                               |
+| [models.py](app/models.py)             | Defines a data model for generating PDFs, ensuring structured input through required fields like title and body content, while allowing optional custom styling and filenames. This model seamlessly integrates with the applications architecture to facilitate user-friendly PDF creation from HTML content, enhancing overall functionality.     |
 
 </details>
 
 <details closed><summary>app.routes</summary>
 
-| File                              | Summary                                                                                                                                                                                                                                                                                                 |
-| ---                               | ---                                                                                                                                                                                                                                                                                                     |
-| [create.py](app/routes/create.py) | Facilitates the generation of custom PDFs through an API endpoint, leveraging HTML and CSS inputs. Integrates dependencies for PDF creation and ensures proper handling of filenames and output paths. Provides a URL for accessing the generated PDF and manages error handling for robust operations. |
+| File                              | Summary                                                                                                                                                                                                                                                                                                                                                        |
+| ---                               | ---                                                                                                                                                                                                                                                                                                                                                            |
+| [create.py](app/routes/create.py) | Facilitates PDF generation by processing user requests and producing downloadable files. It ensures unique filename creation, integrates API key verification, and handles exceptions gracefully, enhancing the overall functionality of the application by linking user inputs with the PDF creation process effectively within the repositorys architecture. |
 
 </details>
 
@@ -120,49 +123,57 @@ The v-gpt-pdf-generator is an efficient, FastAPI-based web service designed to c
 
 * **Python**: `version 3.10`
 
+
 ### ⚙️ Installation
 
-<h4>From <code>source</code></h4>
+1. **Download the `docker-compose.yml` file**:  
+   Save the provided `docker-compose.yml` file to your project directory.
 
-> 1. Clone the v-gpt-pdf-generator repository:
->
-> ```console
-> $ git clone ../v-gpt-pdf-generator
-> ```
->
-> 2. Change to the project directory:
-> ```console
-> $ cd v-gpt-pdf-generator
-> ```
->
-> 3. Install the dependencies:
-> ```console
-> $ pip install -r requirements.txt
-> ```
+2. **Edit Environment Variables**:  
+   Open the `docker-compose.yml` file and set the environment variables according to your setup:
+
+   ```yaml
+   environment:
+      BASE_URL: https://api.servicesbyv.com # Set this to your actual base URL
+      ROOT_PATH: /pdf
+      API_KEY: # Optional API key to connect to the API
+      WORKERS: 1  # Number of Uvicorn workers; 1 is usually enough for personal use
+      UVICORN_CONCURRENCY: 32  # Max connections; anything over this number is rejected
+   ```
+
+3. **Run the Docker Compose**:  
+   Use the following command to start the service:
+
+   ```bash
+   docker-compose up
+   ```
+
+4. **(Optional) Run in Detached Mode**:  
+   To run the containers in the background, use:
+
+   ```bash
+   docker-compose up -d
+   ```
 
 ### 🤖 Usage
 
-<h4>From <code>source</code></h4>
+#### From `docker-compose`
 
-> Run v-gpt-pdf-generator using the command below:
-> ```console
-> $ python main.py
-> ```
+1. **Access the OpenAPI Specifications**:  
+   To get the OpenAPI specifications and integrate with your AI tool, navigate to:
 
-### 🧪 Tests
+   ```
+   BASE_URL/openapi.json
+   ```
 
-> Run the test suite using the command below:
-> ```console
-> $ pytest
-> ```
-
+   Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
 ---
 
-## 🛠 Project Roadmap
+## 🛠 Project Changelog
 
-- [X] `► INSERT-TASK-1`
-- [ ] `► INSERT-TASK-2`
-- [ ] `► ...`
+-  `► Added better default css`
+-  `► Added title parameter to set the H1 header`
+-  `► Added contains_code paramter to allow formatted code blocks`
 
 ---
 
