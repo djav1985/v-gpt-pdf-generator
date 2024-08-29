@@ -18,63 +18,63 @@ import re
 # PDF generation tasks
 async def generate_pdf(pdf_title: str, body_content: str, css_content: str, output_path: Path, contains_code: bool):
     try:
-        # Define default CSS as a string
-        default_css = """
-        @page {
+        # Define default CSS as a string using an f-string for formatting
+        default_css = f"""
+        @page {{
             size: Letter;
             margin: 0.5in;  /* Use a margin for content and space for the footer */
-            @bottom-left {
-                content: "%s";
+            @bottom-left {{
+                content: "{pdf_title}";
                 font-size: 10px;
                 color: #555;
-            }
-            @bottom-right {
+            }}
+            @bottom-right {{
                 content: "Page " counter(page) " of " counter(pages);
                 font-size: 10px;
                 color: #555;
-            }
-        }
-        body {
+            }}
+        }}
+        body {{
             font-family: 'Arial', sans-serif;
             font-size: 12px;
             line-height: 1.5;
             color: #333;
-        }
-        h1 {
+        }}
+        h1 {{
             color: #66cc33;
             margin-bottom: 40px; /* 40px space below h1 */
             border-bottom: 2px solid #66cc33; /* Line under heading for separation */
             padding-bottom: 10px; /* Space below the line */
-        }
-        h2, h3, h4, h5, h6 {
+        }}
+        h2, h3, h4, h5, h6 {{
             color: #4b5161;
             margin-top: 20px;  /* Add space above subheadings */
-        }
-        p {
+        }}
+        p {{
             margin: 1em 0;  /* Consistent paragraph spacing */
-        }
-        a {
+        }}
+        a {{
             color: #0366d6;
             text-decoration: none;
-        }
-        a:hover {
+        }}
+        a:hover {{
             text-decoration: underline;  /* Indicate clickable links */
-        }
-        table {
+        }}
+        table {{
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;  /* Space below tables */
-        }
-        th, td {
+        }}
+        th, td {{
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
-        }
-        th {
+        }}
+        th {{
             background-color: #f4f4f4;
             font-weight: bold;
-        }
-        """ % pdf_title  # Inject the title into the footer
+        }}
+        """
 
         # Initialize combined_css with the default CSS in its own <style> tag
         combined_css = f"<style>{default_css}</style>"
@@ -87,7 +87,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         if contains_code:
             # Use regex to find all <pre><code> blocks
             code_blocks = re.findall(r'<pre><code class="language-(\w+)">(.+?)</code></pre>', body_content, re.DOTALL)
-            
+
             formatter = HtmlFormatter(style='default')
             pygments_css = formatter.get_style_defs('.highlight')
             combined_css += f"<style>{pygments_css}</style>"
@@ -97,10 +97,10 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                     lexer = get_lexer_by_name(language)
                 except Exception:
                     lexer = guess_lexer(code)  # Fallback to guess if the language is not recognized
-                
+
                 # Highlight the code block
                 highlighted_code = highlight(code, lexer, formatter)
-                
+
                 # Replace original code block with highlighted HTML
                 body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', highlighted_code)
 
