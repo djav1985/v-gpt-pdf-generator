@@ -13,17 +13,11 @@ from dependencies import generate_pdf, cleanup_downloads_folder, get_api_key
 
 pdf_router = APIRouter()
 
-
 @pdf_router.post("/", operation_id="create_pdf")
 async def create_pdf(
     request: CreatePDFRequest,
     api_key: str = Depends(get_api_key),
 ):
-    # Use the provided CSS content or fallback to default if not provided
-    css_content = (
-        request.css_content
-        or "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }"
-    )
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
     filename = (
@@ -34,12 +28,13 @@ async def create_pdf(
     output_path = Path("/app/downloads") / filename
 
     try:
-        # Generate the PDF using the provided or default parameters
+        # Generate the PDF using the provided parameters, including contains_code
         await generate_pdf(
             pdf_title=request.pdf_title,
             body_content=request.body_content,
-            css_content=css_content,
-            output_path=output_path
+            css_content=request.css_content or '',  # Directly using request.css_content
+            output_path=output_path,
+            contains_code=request.contains_code  # Passing contains_code directly
         )
 
         return {
