@@ -6,17 +6,28 @@ from typing import Optional
 class CreatePDFRequest(BaseModel):
     pdf_title: str = Field(
         ...,
-        description="Title of the PDF document; will be used as <h1>$title</h1>.",
+        description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title<title>.",
     )
-    body_content: str = Field(
+    html_content: str = Field(
         ...,
-        description="HTML content for the PDF body; will be used as <body>$body_content</body>. Can include element IDs, class attributes, and <img> tags with absolute URLs. Images from DALL-E via absolute URLs are also supported. Customize styling with the 'css_content' parameter.",
+        description=(
+            "HTML content for the PDF body. This will be inserted inside the <body> element of the PDF document. "
+            "Use the 'pdf_title' parameter to set the <h1> heading; do not include an <h1> tag in the 'html_content'. "
+            "You can use standard HTML tags such as <h2>, <h3>, <h4>, <p>, <div>, <span>, <ul>, <ol>, <li>, <img>, <a>, <table>, <tr>, <th>, <td>, etc to structure your content. "
+            "Include classes and IDs within the HTML elements and use the 'css_content' parameter to apply custom styles. "
+            "Images should use absolute URLs. "
+            "Scripts and embedded forms are not supported."
+        ),
     )
     css_content: Optional[str] = Field(
-        None,
-        description="Optional CSS styles to format the 'body_content'.",
+        default=None,
+        description=(
+            "Optional CSS styles to format the HTML content. Style elements using selectors like tags, classes, and IDs. "
+            "Provide custom styles or override default styles to achieve desired layout and design."
+        ),
     )
     output_filename: Optional[str] = Field(
         default=None,
-        description="Optional filename for the PDF, use - for spaces and do not include the extension.",
+        description="Optional filename for the generated PDF. Use hyphens for spaces and do not include the file extension.",
     )
+
