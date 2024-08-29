@@ -11,7 +11,6 @@ from starlette.responses import JSONResponse
 from models import CreatePDFRequest
 from dependencies import generate_pdf, cleanup_downloads_folder, get_api_key
 
-
 pdf_router = APIRouter()
 
 
@@ -20,6 +19,7 @@ async def create_pdf(
     request: CreatePDFRequest,
     api_key: str = Depends(get_api_key),
 ):
+    # Use the provided CSS content or fallback to default if not provided
     css_content = (
         request.css_content
         or "body { font-family: 'Arial', sans-serif; } h1, h2, h3, h4, h5, h6 { color: #66cc33; } p { margin: 0.5em 0; } a { color: #66cc33; text-decoration: none; }"
@@ -34,13 +34,16 @@ async def create_pdf(
     output_path = Path("/app/downloads") / filename
 
     try:
+        # Generate the PDF using the provided or default parameters
         await generate_pdf(
-            html_content=request.html_content,
+            pdf_title=request.pdf_title,
+            body_content=request.body_content,
             css_content=css_content,
-            output_path=output_path,
+            output_path=output_path
         )
+
         return {
-            "results": "PDF generation is still in progress. Please check the URL after some time.",
+            "results": "PDF generation is complete. You can download it from the following URL:",
             "url": f"{os.getenv('BASE_URL')}{os.getenv('ROOT_PATH', '')}/downloads/{filename}",
         }
     except Exception as e:
