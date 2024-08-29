@@ -30,4 +30,3 @@ class CreatePDFRequest(BaseModel):
         default=None,
         description="Optional filename for the generated PDF. Use hyphens for spaces and do not include the file extension.",
     )
-
