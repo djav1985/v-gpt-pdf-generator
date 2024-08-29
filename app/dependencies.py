@@ -92,6 +92,25 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         print(f"Error generating PDF: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
 
+# Function to clean up the downloads folder
+async def cleanup_downloads_folder(folder_path: str):
+    try:
+        now = datetime.now()
+        age_limit = now - timedelta(days=7)
+        filenames = await asyncio.to_thread(os.listdir, folder_path)
+        for filename in filenames:
+            file_path = os.path.join(folder_path, filename)
+            if await aiofiles.os.path.isfile(file_path):
+                file_mod_time = datetime.fromtimestamp(
+                    await asyncio.to_thread(os.path.getmtime, file_path)
+                )
+                if file_mod_time < age_limit:
+                    await asyncio.to_thread(os.remove, file_path)
+    except Exception as e:
+        print(f"Cleanup error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+
+
 # This function checks if the provided API key is valid or not
 async def get_api_key(
     credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False)),
