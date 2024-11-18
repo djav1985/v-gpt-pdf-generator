@@ -2,7 +2,7 @@ fastapi==0.110.1
 uvicorn==0.29.0
 WeasyPrint==62.3
 pydantic==2.6.1
-aiohttp==3.9.5
+aiohttp==3.10.11
 aiofiles==0.8.0
 beautifulsoup4==4.12.3
 pygments==2.18.0
