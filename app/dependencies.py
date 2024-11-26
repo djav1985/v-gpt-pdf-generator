@@ -26,20 +26,19 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         default_css = f"""
         @page {{
             size: Letter;
-            margin: 0.5in;
+            margin: 0.5in; /* Adjusted left and right margins to 1 inch */
             @bottom {{
                 content: "";
-                border-top: 2px solid #0366d6;
-                background-color: #f4f4f4;
+                border-top: 2px solid #66cc33;
+                background-color: #4b5161;
                 padding-top: 10px;
-                height: 70px;
+                padding-bottom: 10px;
             }}
             @bottom-left {{
-                content: "© {datetime.now().year} {footer_name}";
+                content: "© {datetime.now().year} " attr(href); /* Adjusted footer name to be a link */
                 font-size: 10px;
                 color: #555;
-                vertical-align: middle;
-                margin-left: 0.5in;
+                vertical-align: middle; 
             }}
             @bottom-center {{
                 content: "Page " counter(page) " of " counter(pages);
@@ -52,7 +51,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                 height: 60px;
                 width: auto;
                 vertical-align: middle;
-                margin-right: 0.5in;
             }}
         }}
         body {{
