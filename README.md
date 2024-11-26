@@ -33,11 +33,10 @@
 - [🚀 Getting Started](#-getting-started)
   - [⚙️ Installation](#️-installation)
   - [🤖 Usage](#-usage)
-  - [🧪 Tests](#-tests)
-- [🛠 Project Roadmap](#-project-roadmap)
-- [🤝 Contributing](#-contributing)
+    - [From `docker-compose`](#from-docker-compose)
+- [🛠 Project Changelog](#-project-changelog)
 - [🎗 License](#-license)
-- [🔗 Acknowledgments](#-acknowledgments)
+
 </details>
 <hr>
 
@@ -167,19 +166,20 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
    ```
 
    Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
+   
 ---
 
 ## 🛠 Project Changelog
 
--  `► Added better default css`
--  `► Added title parameter to set the H1 header`
--  `► Added contains_code paramter to allow formatted code blocks`
+-  `► Added footer to pdfs`
+-  `► improved page breaks`
+-  `► Minor code improvements`
 
 ---
 
 ## 🎗 License
 
-This project is protected under the MIT Licence
+This project is protected under the [MIT License](./LICENSE).
 
 ---
 

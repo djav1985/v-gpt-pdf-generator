@@ -24,14 +24,12 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
     libgdk-pixbuf2.0-0 \
-    gir1.2-gtk-3.0 \
-    gobject-introspection \
     libffi-dev \
     libxml2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder stage
-COPY --from=builder /app/venv /app/venv
+# Copy the virtual environment from the builder stage (only necessary parts)
+COPY --from=builder /app/venv/lib/python3.10/site-packages /app/venv/lib/python3.10/site-packages
 
 # Copy the rest of the application
 COPY ./app /app
