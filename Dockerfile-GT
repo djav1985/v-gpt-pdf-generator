@@ -5,12 +5,13 @@ FROM python:3.10-slim as builder
 WORKDIR /app
 
 # Copy the requirements file and cache
+COPY /cache /app/cache
 COPY requirements.txt /app
 
 # Install Python dependencies in a virtual environment
 RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    pip install -r requirements.txt
+    pip install --no-index --find-links /app/cache -r requirements.txt
 
 # Final stage
 FROM python:3.10-slim
@@ -43,4 +44,3 @@ ENV PATH="/app/venv/bin:$PATH"
 
 # Set the command to run your FastAPI application with Uvicorn
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8888 --workers $WORKERS --limit-concurrency $UVICORN_CONCURRENCY"]
-
