@@ -1,5 +1,6 @@
 # /dependencies.py
 import os
+import re
 import asyncio
 import aiofiles
 from pathlib import Path
@@ -26,31 +27,33 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         default_css = f"""
         @page {{
             size: Letter;
-            margin: 0.5in; /* Adjusted left and right margins to 1 inch */
+            margin: 0.5in;
             @bottom {{
-                content: "";
                 border-top: 2px solid #66cc33;
-                background-color: #4b5161;
                 padding-top: 10px;
-                padding-bottom: 10px;
             }}
             @bottom-left {{
-                content: "© {datetime.now().year} " attr(href); /* Adjusted footer name to be a link */
-                font-size: 10px;
-                color: #555;
-                vertical-align: middle; 
+                content: url('{footer_image}');
+                height: 60px;
+                width: auto;
+                vertical-align: middle;
+                margin-left: 0.5in;
+                margin-bottom: 0.25in;
             }}
             @bottom-center {{
                 content: "Page " counter(page) " of " counter(pages);
                 font-size: 10px;
                 color: #555;
                 vertical-align: middle;
+                margin-bottom: 0.25in;
             }}
             @bottom-right {{
-                content: url('{footer_image}');
-                height: 60px;
-                width: auto;
+                content: "© {datetime.now().year} <a href='{footer_link}'>{footer_name}</a>";
+                font-size: 10px;
+                color: #555;
                 vertical-align: middle;
+                margin-right: 0.5in;
+                margin-bottom: 0.25in;
             }}
         }}
         body {{
@@ -103,6 +106,13 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #f4f4f4;
+        }}
+        footer a {{
+            color: #555;
+            text-decoration: none;
+        }}
+        footer a:hover {{
+            text-decoration: underline;
         }}
         """
 
