@@ -1,7 +1,7 @@
 fastapi==0.115.5
 uvicorn==0.32.1
 WeasyPrint==63
-pydantic==2.10.6
+pydantic==2.10.2
 aiofiles==24.1.0
 pygments==2.18.0
 starlette==0.41.3
