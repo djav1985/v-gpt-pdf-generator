@@ -20,19 +20,12 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
     try:
         # Retrieve environment variables for footer customization; set defaults if not available
         footer_name = os.getenv("FOOTER_NAME", "Vontainment.com")
-        header_img = os.getenv("HEADER_IMG", "https://example.com/header-image.png")
         
         # Define default CSS styles for the PDF layout and appearance
         default_css = f"""
-        
         @page {{
             size: Letter;
             margin: 0.25in 0.5in 0.5in 0.5in;
-            @bottom {{
-                border-top: 2px solid #66cc33;
-                padding-top: 10px;
-                margin-bottom: 0.5in;
-            }}
             @bottom-left {{
                 content: "© {datetime.now().year} {footer_name}";
                 font-size: 10px;
@@ -46,21 +39,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                 margin-bottom: 0.25in;
             }}
         }}
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header-title {
-            flex-grow: 1;
-            text-align: left;
-        }
-        .header-img {
-            width: 100px;
-            height: 100px;
-            align-self: flex-end;
-        }
         body {{
             font-family: 'Arial', sans-serif;
             font-size: 12px;
@@ -72,9 +50,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             margin-bottom: 20px;
             border-bottom: 1px solid #66cc33;
             padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }}
         h2, h3, h4, h5, h6 {{
             color: #4b5161;
@@ -137,22 +112,15 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             combined_css += f"<style>{pygments_css}</style>"
 
             # Highlight each code block found in the body content
-            highlighted_code_blocks = {}
             for idx, (language, code) in enumerate(code_blocks):
                 try:
                     lexer = get_lexer_by_name(language)  # Get the appropriate lexer
                 except Exception:
                     lexer = guess_lexer(code)  # Fallback to guessing the lexer if the language is unknown
 
-                # Highlight the code block and store it with a unique identifier
+                # Highlight the code block and replace the original code block with highlighted HTML
                 highlighted_code = highlight(code, lexer, formatter)
-                unique_id = f'code-block-{idx}'
-                highlighted_code_blocks[unique_id] = highlighted_code
-                body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', f'<div id="{unique_id}"></div>', 1)
-
-            # Replace placeholders with the actual highlighted code
-            for unique_id, highlighted_code in highlighted_code_blocks.items():
-                body_content = body_content.replace(f'<div id="{unique_id}"></div>', highlighted_code)
+                body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', f'<div id="code-block-{idx}">{highlighted_code}</div>')
 
         # Construct the final HTML template for the PDF
         html_template = f"""
@@ -162,10 +130,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                 {combined_css}
             </head>
             <body>
-                <h1 class="header">
-                    <span class="header-title">{pdf_title}</span>
-                    <img src="{header_img}" alt="Header Image" class="header-img">
-                </h1>
+                <h1>{pdf_title}</h1>
                 {body_content}
             </body>
         </html>
