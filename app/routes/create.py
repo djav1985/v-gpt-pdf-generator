@@ -2,6 +2,7 @@
 import os
 import random
 import string
+from typing import Dict
 from datetime import datetime
 from pathlib import Path
 
@@ -11,13 +12,14 @@ from starlette.responses import JSONResponse
 from models import CreatePDFRequest
 from dependencies import generate_pdf, cleanup_downloads_folder, get_api_key
 
+
 pdf_router = APIRouter()
 
 @pdf_router.post("/", operation_id="create_pdf")
 async def create_pdf(
     request: CreatePDFRequest,
     api_key: str = Depends(get_api_key),
-):
+) -> dict[str, str]:
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
     filename = (
