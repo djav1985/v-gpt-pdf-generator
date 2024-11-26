@@ -195,25 +195,53 @@ class CreatePDFRequest(BaseModel):
     def validate_css_content(cls, value: Optional[str]):
         if value is None:
             return value
-        
-        # Validate that CSS content only contains allowed properties
+    
+        # List of allowed CSS properties
         allowed_css_properties = [
             "color", "font-size", "margin", "padding", "background", "border", "width", "height", "display",
             "position", "top", "left", "right", "bottom", "overflow", "text-align", "line-height", "font-weight",
             "font-family", "border-radius", "opacity", "z-index"
         ]
-        
-        # Split the CSS rules by ";" and check each rule
-        css_rules = value.split(";")
-        for rule in css_rules:
-            if not rule.strip():  # Skip empty rules
+    
+        # Split CSS content into individual blocks based on "}" to handle multiple selectors
+        css_blocks = value.split("}")
+        for block in css_blocks:
+            block = block.strip()
+            if not block:
                 continue
-            
-            property_name = rule.split(":")[0].strip().lower()  # Get the property name
-            if property_name not in allowed_css_properties:  # Check against allowed properties
-                raise ValueError(f"The 'css_content' contains an invalid CSS property: {property_name}")
-        
+    
+            # Split block into selector and properties
+            if "{" not in block:
+                raise ValueError("Invalid CSS format: missing '{'.")
+    
+            selector, properties = block.split("{", 1)
+            selector = selector.strip()
+            properties = properties.strip()
+    
+            # Ensure the selector is not empty
+            if not selector:
+                raise ValueError("CSS selector cannot be empty.")
+    
+            # Split properties by ";" and validate each property
+            css_rules = properties.split(";")
+            for rule in css_rules:
+                rule = rule.strip()
+                if not rule:  # Skip empty rules
+                    continue
+    
+                # Extract property name and value
+                if ":" not in rule:
+                    raise ValueError(f"Invalid CSS rule format: '{rule}'")
+                
+                property_name, property_value = rule.split(":", 1)
+                property_name = property_name.strip().lower()
+    
+                # Validate the property name against allowed properties
+                if property_name not in allowed_css_properties:
+                    raise ValueError(f"The 'css_content' contains an invalid CSS property: {property_name}")
+    
         return value
+
 
     @field_validator("output_filename")
     def validate_output_filename(cls, value: Optional[str]):

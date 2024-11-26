@@ -149,13 +149,16 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         print(f"Cleanup error: {str(e)}")  # Log the cleanup error
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")  # Raise HTTP exception for the cleanup error
 
-# This function checks if the provided API key is valid
 async def get_api_key(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),  # Dependency injection for token-based auth
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
 ) -> Optional[str]:
-    # Validate the API key against the environment variable
-    if os.getenv("API_KEY") and (
-        not credentials or credentials.credentials != os.getenv("API_KEY")  # Check if provided credentials match the expected API key
-    ):
-        raise HTTPException(status_code=403, detail="Invalid or missing API key")  # Raise an exception if the key is invalid
-    return credentials.credentials if credentials else None  # Return the valid credentials or None if not provided
+    # Retrieve the API key from the environment
+    expected_key = os.getenv("API_KEY")
+
+    # If API_KEY is set in the environment, enforce validation
+    if expected_key:
+        if not credentials or credentials.credentials != expected_key:
+            raise HTTPException(status_code=403, detail="Invalid or missing API key")
+
+    # If API_KEY is not set, allow access without validation
+    return credentials.credentials if credentials else None
