@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      actions: read
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -46,6 +47,14 @@ jobs:
             type=raw,value=latest,enable=${{ github.event_name == 'release' && github.event.action == 'published' }}
             type=sha,priority=100,enable=true
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -56,6 +65,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             REPO_URL=https://github.com/${{ github.repository }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
 
       - name: Cleanup dangling images
         run: |
