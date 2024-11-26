@@ -25,23 +25,22 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         default_css = f"""
         @page {{
             size: Letter;
-            margin: 0.5in;
+            margin: 0.25in 0.5in 0.5in 0.5in;
             @bottom {{
                 border-top: 2px solid #66cc33;
                 padding-top: 10px;
+                margin-bottom: 0.5in;
             }}
             @bottom-left {{
                 content: "© {datetime.now().year} {footer_name}";
                 font-size: 10px;
                 color: #66cc33;
-                margin-left: 0.5in;
                 margin-bottom: 0.25in;
             }}
             @bottom-right {{
                 content: "Page " counter(page) " of " counter(pages);
                 font-size: 10px;
                 color: #66cc33;
-                margin-right: 0.5in;
                 margin-bottom: 0.25in;
             }}
         }}
@@ -49,8 +48,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             font-family: 'Arial', sans-serif;
             font-size: 12px;
             line-height: 1.5;
-            color: #333;
-            margin-bottom: 100px; /* Ensure space for footer */
+            color: #333; 
         }}
         h1 {{
             color: #66cc33;
@@ -61,6 +59,8 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         h2, h3, h4, h5, h6 {{
             color: #4b5161;
             margin-bottom: 20px;
+            page-break-after: avoid;
+            page-break-inside: avoid;
         }}
         p, table, ul, ol, pre, code, blockquote, img, li, thead, tbody, tr {{
             page-break-inside: avoid;
@@ -95,6 +95,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #f4f4f4;
+            page-break-inside: avoid;
         }}
         """
 
