@@ -6,8 +6,8 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
 
-from weasyprint import HTML, CSS
-from fastapi import Security, HTTPException, Depends
+from weasyprint import HTML
+from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from pygments import highlight
@@ -24,58 +24,88 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         
         # Define default CSS styles for the PDF layout and appearance
         default_css = f"""
-        @page{{size:Letter;margin:0.5in;}}
-        @page @bottom{{
-            background-color: #f4f4f4;
-            border-top: 2px solid #0366d6;
-            padding: 10px;
-            margin-left: 0in;
-            margin-right: 0in;
-            margin-bottom: 0in;
-            clip-path: polygon(0% 100%, 0% 0%, 100% 0%, 100% 100%, 50% 90%);
+        @page {{
+            size: Letter;
+            margin: 0.5in;
+            @bottom {{
+                content: "";
+                border-top: 2px solid #0366d6;
+                background-color: #f4f4f4;
+                padding-top: 10px;
+                height: 70px;
+            }}
+            @bottom-left {{
+                content: "© {datetime.now().year} {footer_name}";
+                font-size: 10px;
+                color: #555;
+                vertical-align: middle;
+                margin-left: 0.5in;
+            }}
+            @bottom-center {{
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #555;
+                vertical-align: middle;
+            }}
+            @bottom-right {{
+                content: url('{footer_image}');
+                height: 60px;
+                width: auto;
+                vertical-align: middle;
+                margin-right: 0.5in;
+            }}
         }}
-        @page @bottom-left{{
-            content: "Copyright {datetime.now().year} ";
-            font-size:10px;
-            color:#555;
+        body {{
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 100px; /* Ensure space for footer */
         }}
-        @page @bottom-left-corner {{
-            content: "<a href='{footer_link}'>{footer_name}</a>";
-            font-size:10px;
-            color:#0366d6;
+        h1 {{
+            color: #66cc33;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #66cc33;
+            padding-bottom: 10px;
         }}
-        @page @bottom-right{{
-            content: url('{footer_image}');
-            width:20px;
-            height:auto;
-        }}
-        @page @bottom-center{{
-            content: "Page " counter(page) " of " counter(pages);
-            font-size:10px;
-            color:#555;
-        }}
-        body{{font-family:'Arial',sans-serif;font-size:12px;line-height:1.5;color:#333;}}
-        h1, h2, h3, h4, h5, h6{{
-            color:#66cc33;
-            margin-bottom:40px;
-            border-bottom:2px solid #66cc33;
-            padding-bottom:10px;
-            page-break-after: avoid;
-            page-break-inside: avoid;
+        h2, h3, h4, h5, h6 {{
+            color: #4b5161;
+            margin-bottom: 20px;
         }}
         p, table, ul, ol, pre, code, blockquote, img, li, thead, tbody, tr {{
             page-break-inside: avoid;
             orphans: 3;
             widows: 3;
         }}
-        h2,h3,h4,h5,h6{{color:#4b5161;margin-top:20px;}}
-        p{{margin:1em 0;}}
-        a{{color:#0366d6;text-decoration:none;}}
-        a:hover{{text-decoration:underline;}}
-        table{{width:100%;border-collapse:collapse;margin-bottom:20px;}}
-        th,td{{border:1px solid #ddd;padding:8px;text-align:left;}}
-        th{{background-color:#f4f4f4;font-weight:bold;}}
-        pre,code{{padding:20px;border:1px solid #ccc;background-color:#f4f4f4;}}
+        p {{
+            margin: 1em 0;
+        }}
+        a {{
+            color: #0366d6;
+            text-decoration: none;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }}
+        th, td {{
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }}
+        th {{
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }}
+        pre, code {{
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+        }}
         """
 
         # Initialize combined_css with the default CSS wrapped in a <style> tag
@@ -124,7 +154,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(
             None,
-            lambda: HTML(string=html_template).write_pdf(target=output_path)  # Write the PDF to the specified output path
+            lambda: HTML(string=html_template).write_pdf(target=str(output_path))  # Write the PDF to the specified output path
         )
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")  # Log the error
