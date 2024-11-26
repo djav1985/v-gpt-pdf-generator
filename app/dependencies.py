@@ -33,8 +33,8 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             }}
             @bottom-left {{
                 content: url('{footer_image}');
-                height: 60px;
-                width: auto;
+                height: auto;
+                width: 200px;
                 vertical-align: middle;
                 margin-left: 0.5in;
                 margin-bottom: 0.25in;
