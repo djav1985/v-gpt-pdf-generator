@@ -1,23 +1,20 @@
 # Build stage
 FROM python:3.10-slim AS builder
-ARG REPO_URL
-LABEL org.opencontainers.image.source="${REPO_URL}"
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the requirements file and cache
+COPY /cache /app/cache
 COPY requirements.txt /app
 
 # Install Python dependencies in a virtual environment
 RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    pip install -r requirements.txt
+    pip install --no-index --find-links /app/cache -r requirements.txt
 
 # Final stage
 FROM python:3.10-slim
-ARG REPO_URL
-LABEL org.opencontainers.image.source="${REPO_URL}"
 
 # Set the working directory
 WORKDIR /app
@@ -32,7 +29,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the virtual environment from the builder stage (only necessary parts)
-COPY --from=builder /app/venv/lib/python3.10/site-packages /app/venv/lib/python3.10/site-packages
+COPY --from=builder /app/venv /app/venv
 
 # Copy the rest of the application
 COPY ./app /app
@@ -47,4 +44,3 @@ ENV PATH="/app/venv/bin:$PATH"
 
 # Set the command to run your FastAPI application with Uvicorn
 CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8888 --workers $WORKERS --limit-concurrency $UVICORN_CONCURRENCY"]
-
