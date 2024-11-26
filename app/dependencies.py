@@ -1,4 +1,4 @@
-# /dependencies.py
+# /dependencies.py 
 import os
 import re
 import asyncio
@@ -20,7 +20,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
     try:
         # Retrieve environment variables for footer customization; set defaults if not available
         footer_name = os.getenv("FOOTER_NAME", "Vontainment.com")
-        footer_image = os.getenv("FOOTER_IMAGE", "https://example.com/footer-image.png")
         
         # Define default CSS styles for the PDF layout and appearance
         default_css = f"""
@@ -32,25 +31,16 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                 padding-top: 10px;
             }}
             @bottom-left {{
-                content: url('{footer_image}');
-                height: auto;
-                width: 200px;
-                vertical-align: middle;
-                margin-left: 0.5in;
-                margin-bottom: 0.25in;
-            }}
-            @bottom-center {{
-                content: "Page " counter(page) " of " counter(pages);
-                font-size: 10px;
-                color: #66cc33;
-                vertical-align: middle;
-                margin-bottom: 0.25in;
-            }}
-            @bottom-right {{
                 content: "© {datetime.now().year} {footer_name}";
                 font-size: 10px;
                 color: #66cc33;
-                vertical-align: middle;
+                margin-left: 0.5in;
+                margin-bottom: 0.25in;
+            }}
+            @bottom-right {{
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10px;
+                color: #66cc33;
                 margin-right: 0.5in;
                 margin-bottom: 0.25in;
             }}
@@ -106,13 +96,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             border: 1px solid #ccc;
             background-color: #f4f4f4;
         }}
-        footer a {{
-            color: #555;
-            text-decoration: none;
-        }}
-        footer a:hover {{
-            text-decoration: underline;
-        }}
         """
 
         # Initialize combined_css with the default CSS wrapped in a <style> tag
@@ -133,7 +116,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             combined_css += f"<style>{pygments_css}</style>"
 
             # Highlight each code block found in the body content
-            for language, code in code_blocks:
+            for idx, (language, code) in enumerate(code_blocks):
                 try:
                     lexer = get_lexer_by_name(language)  # Get the appropriate lexer
                 except Exception:
@@ -141,7 +124,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
 
                 # Highlight the code block and replace the original code block with highlighted HTML
                 highlighted_code = highlight(code, lexer, formatter)
-                body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', highlighted_code)
+                body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', f'<div id="code-block-{idx}">{highlighted_code}</div>')
 
         # Construct the final HTML template for the PDF
         html_template = f"""
