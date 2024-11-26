@@ -1,6 +1,7 @@
 # Build stage
 FROM python:3.10-slim AS builder
-LABEL org.opencontainers.image.source="https://github.com/${{ github.repository }}"
+ARG REPO_URL
+LABEL org.opencontainers.image.source="${REPO_URL}"
 
 # Set the working directory
 WORKDIR /app
@@ -15,7 +16,8 @@ RUN python -m venv /app/venv && \
 
 # Final stage
 FROM python:3.10-slim
-LABEL org.opencontainers.image.source="https://github.com/${{ github.repository }}"
+ARG REPO_URL
+LABEL org.opencontainers.image.source="${REPO_URL}"
 
 # Set the working directory
 WORKDIR /app

@@ -54,6 +54,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            REPO_URL=https://github.com/${{ github.repository }}
 
       - name: Cleanup dangling images
         run: |
