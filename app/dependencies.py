@@ -20,7 +20,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
     try:
         # Retrieve environment variables for footer customization; set defaults if not available
         footer_name = os.getenv("FOOTER_NAME", "Vontainment.com")
-        footer_link = os.getenv("FOOTER_LINK", "https://vontainment.com/")
         footer_image = os.getenv("FOOTER_IMAGE", "https://example.com/footer-image.png")
         
         # Define default CSS styles for the PDF layout and appearance
@@ -43,14 +42,14 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
             @bottom-center {{
                 content: "Page " counter(page) " of " counter(pages);
                 font-size: 10px;
-                color: #555;
+                color: #66cc33;
                 vertical-align: middle;
                 margin-bottom: 0.25in;
             }}
             @bottom-right {{
-                content: "© {datetime.now().year} <a href='{footer_link}'>{footer_name}</a>";
+                content: "© {datetime.now().year} {footer_name}";
                 font-size: 10px;
-                color: #555;
+                color: #66cc33;
                 vertical-align: middle;
                 margin-right: 0.5in;
                 margin-bottom: 0.25in;
