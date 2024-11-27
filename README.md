@@ -33,7 +33,6 @@
 - [🚀 Getting Started](#-getting-started)
   - [⚙️ Installation](#️-installation)
   - [🤖 Usage](#-usage)
-    - [From `docker-compose`](#from-docker-compose)
 - [🛠 Project Changelog](#-project-changelog)
 - [🎗 License](#-license)
 
