@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
+
 # Request model for creating a PDF
 class CreatePDFRequest(BaseModel):
     pdf_title: str = Field(
         ...,
-        description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title</title>."
+        description="Title of the PDF document; will be used as both the <h1>$title</h1> in the body and the <title>$title</title>.",
     )
     contains_code: bool = Field(
         default=False,
@@ -35,5 +36,5 @@ class CreatePDFRequest(BaseModel):
     )
     output_filename: Optional[str] = Field(
         default=None,
-        description="Optional filename for the generated PDF. Use hyphens for spaces and do not include the file extension."
+        description="Optional filename for the generated PDF. Use hyphens for spaces and do not include the file extension.",
     )
