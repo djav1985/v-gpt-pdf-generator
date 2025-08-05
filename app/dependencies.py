@@ -98,6 +98,7 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
 
         # Initialize combined_css with the default CSS wrapped in a <style> tag
         combined_css = f"<style>{default_css}</style>"
+ f"<style>{default_css}</style>"
 
         # Append provided CSS content within its own <style> tag, if any
         if css_content:
