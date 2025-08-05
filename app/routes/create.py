@@ -17,7 +17,7 @@ pdf_router = APIRouter()
 @pdf_router.post("/", operation_id="create_pdf")
 async def create_pdf(
     request: CreatePDFRequest,
-    api_key: str = Depends(get_api_key),
+    _api_key: str = Depends(get_api_key),
 ) -> JSONResponse:
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
@@ -37,6 +37,8 @@ async def create_pdf(
             output_path=output_path,
             contains_code=request.contains_code  # Passing contains_code directly
         )
+
+        await cleanup_downloads_folder("/app/downloads")
 
         return JSONResponse(content={
             "results": "PDF generation is complete. You can download it from the following URL:",
