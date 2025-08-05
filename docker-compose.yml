@@ -1,20 +1,22 @@
-version: '3.8'
+version: '3.8'  # Specify the version of Docker Compose being used
+
 services:
   pdf:
-    container_name: pdf-generator
-    image: vontainment/gpt-pdf-generator:main  # Use your appropriate image
-    restart: unless-stopped
-    network_mode: bridge
+    container_name: pdf-generator  # Set the name for the container instance
+    image: vontainment/gpt-pdf-generator:main  # Use your appropriate Docker image for the PDF generator
+    restart: unless-stopped  # Restart policy: the container will restart unless it has been stopped manually
+    network_mode: bridge  # Use the default bridge network for communication
     ports:
-      - "8050:8888"  # Map port 80 of the container to port 80 on the host
-    environment:
-      BASE_URL: https://api.servicesbyv.com # Set this to your actual base URL
-      ROOT_PATH: /pdf
-      API_KEY: Optional API key to connect to api
-      WORKERS: 1 #uvicorn workers 1 should be enough for personal use
-      UVICORN_CONCURRENCY: 32 #this controls the mac connections. Anything over the API_concurrancy value is put in query pool. Anything over this number is rejected.
+      - "8050:8888"  # Map port 8888 inside the container to port 8050 on the host machine to access the service
+    environment:  # Environment variables set for the container
+      BASE_URL: https://api.servicesbyv.com # Base URL for the API used by the generator
+      ROOT_PATH: /pdf  # Define the root path for the service
+      API_KEY: Optional API key to connect to api  # Optional API key for authentication with the service
+      FOOTER_NAME: Vontainment.com  # Footer name to be used in generated PDFs
+      WORKERS: 1 # Number of Uvicorn workers; 1 should suffice for personal use
+      UVICORN_CONCURRENCY: 32 # Controls the maximum active connections; excess requests go into a query pool and may be rejected if over this limit
     volumes:
-      - pdf-data:/app/downloads  # Ensure downloads directory is persistent
+      - pdf-data:/app/downloads  # Mount a named volume to persist the downloads directory
 
 volumes:
-  pdf-data:
+  pdf-data:  # Define a named volume for persistent storage
