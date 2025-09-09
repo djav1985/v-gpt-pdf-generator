@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 import re
 
-
 class CreatePDFRequest(BaseModel):
     # Title of the PDF document; required field with specific length constraints and description
     pdf_title: str = Field(

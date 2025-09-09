@@ -2,7 +2,8 @@
 import os
 import re
 import asyncio
-import aiofiles
+import re
+
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
@@ -117,7 +118,6 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
                     lexer = get_lexer_by_name(language)  # Get the appropriate lexer
                 except Exception:
                     lexer = guess_lexer(code)  # Fallback to guessing the lexer if the language is unknown
-
                 # Highlight the code block and replace the original code block with highlighted HTML
                 highlighted_code = highlight(code, lexer, formatter)
                 body_content = body_content.replace(f'<pre><code class="language-{language}">{code}</code></pre>', f'<div id="code-block-{idx}">{highlighted_code}</div>')
@@ -157,6 +157,7 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
             if await aiofiles.os.path.isfile(file_path):  # Check if it's a file
                 file_mod_time = datetime.fromtimestamp(
                     await asyncio.to_thread(os.path.getmtime, file_path)  # Get the last modification time of the file
+
                 )
                 # Remove the file if it is older than the age limit
                 if file_mod_time < age_limit:
