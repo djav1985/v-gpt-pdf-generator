@@ -33,11 +33,9 @@
 - [🚀 Getting Started](#-getting-started)
   - [⚙️ Installation](#️-installation)
   - [🤖 Usage](#-usage)
-  - [🧪 Tests](#-tests)
-- [🛠 Project Roadmap](#-project-roadmap)
-- [🤝 Contributing](#-contributing)
+- [🛠 Project Changelog](#-project-changelog)
 - [🎗 License](#-license)
-- [🔗 Acknowledgments](#-acknowledgments)
+
 </details>
 <hr>
 
@@ -56,7 +54,6 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
 | 📄 | **Documentation** | Documentation is comprehensive, detailing setup with `requirements.txt`, `Dockerfile`, and `docker-compose.yml`. In-line comments and structured organization guide users through the core functionalities. |
 | 🔌 | **Integrations**  | Essential integrations include aiohttp for asynchronous HTTP requests, FastAPI for building APIs, and WeasyPrint for PDF generation. These components facilitate seamless data handling and PDF services. |
 | 🧩 | **Modularity**    | The codebase is highly modular, with separate files for routing, models, and dependencies. This structure promotes reusability and easier testing, allowing developers to update components independently. |
-| 🧪 | **Testing**       | Utilizes pytest for unit testing, ensuring code functionality and stability. Test cases evaluate critical paths, including API endpoints and PDF generation processes, ensuring robust performance. |
 | ⚡️  | **Performance**   | Optimized for high efficiency, the application handles multiple requests concurrently with FastAPI, minimizing response times and resource usage through asynchronous programming. |
 | 🛡️ | **Security**      | Employs API key validation and secure access measures. Techniques like input validation and error handling safeguard against common vulnerabilities during PDF generation. |
 | 📦 | **Dependencies**  | Key dependencies include FastAPI, WeasyPrint, Pydantic for data validation, aiofiles for file handling, and uvicorn for running the application, ensuring robust functionality and performance. |
@@ -167,19 +164,20 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
    ```
 
    Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
+   
 ---
 
 ## 🛠 Project Changelog
 
--  `► Added better default css`
--  `► Added title parameter to set the H1 header`
--  `► Added contains_code paramter to allow formatted code blocks`
+-  `► Added footer to pdfs`
+-  `► improved page breaks`
+-  `► Minor code improvements`
 
 ---
 
 ## 🎗 License
 
-This project is protected under the MIT Licence
+This project is protected under the [MIT License](./LICENSE).
 
 ---
 

@@ -1,5 +1,5 @@
 # Build stage
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -19,18 +19,20 @@ FROM python:3.10-slim
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies for WeasyPrint and related libraries
+# Install system dependencies for WeasyPrint
 RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libpangoft2-1.0-0 \
     libgdk-pixbuf2.0-0 \
-    gir1.2-gtk-3.0 \
-    gobject-introspection \
     libffi-dev \
     libxml2-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment from the builder stage
+# Copy the virtual environment from the builder stage (all parts)
 COPY --from=builder /app/venv /app/venv
 
 # Copy the rest of the application
