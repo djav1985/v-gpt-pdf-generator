@@ -11,7 +11,7 @@ services:
     environment:  # Environment variables set for the container
       BASE_URL: https://api.servicesbyv.com # Base URL for the API used by the generator
       ROOT_PATH: /pdf  # Define the root path for the service
-      API_KEY: Optional API key to connect to api  # Optional API key for authentication with the service
+      # API_KEY: Optional API key to connect to api  # Optional API key for authentication with the service
       FOOTER_NAME: Vontainment.com  # Footer name to be used in generated PDFs
       WORKERS: 1 # Number of Uvicorn workers; 1 should suffice for personal use
       UVICORN_CONCURRENCY: 32 # Controls the maximum active connections; excess requests go into a query pool and may be rejected if over this limit

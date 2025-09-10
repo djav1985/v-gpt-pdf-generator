@@ -2,7 +2,7 @@
 import os
 import re
 import asyncio
-import re
+import aiofiles
 
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -154,7 +154,7 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         filenames = await asyncio.to_thread(os.listdir, folder_path)  # List files in the provided folder path
         for filename in filenames:
             file_path = os.path.join(folder_path, filename)  # Construct full file path
-            if await aiofiles.os.path.isfile(file_path):  # Check if it's a file
+            if await aiofiles.ospath.isfile(file_path):  # Check if it's a file
                 file_mod_time = datetime.fromtimestamp(
                     await asyncio.to_thread(os.path.getmtime, file_path)  # Get the last modification time of the file
 

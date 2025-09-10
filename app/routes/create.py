@@ -5,6 +5,8 @@ import string
 
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.responses import JSONResponse
 
@@ -17,7 +19,7 @@ pdf_router = APIRouter()
 @pdf_router.post("/", operation_id="create_pdf")
 async def create_pdf(
     request: CreatePDFRequest,
-    api_key: str = Depends(get_api_key),
+    api_key: Optional[str] = Depends(get_api_key),
 ) -> JSONResponse:
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
@@ -27,6 +29,9 @@ async def create_pdf(
         else f"{request.output_filename}{filename_suffix}.pdf"
     )
     output_path = Path("/app/downloads") / filename
+
+    # Clean up old files in the downloads directory
+    await cleanup_downloads_folder("/app/downloads")
 
     try:
         # Generate the PDF using the provided parameters, including contains_code

@@ -4,14 +4,17 @@ FROM python:3.10-slim AS builder
 # Set the working directory
 WORKDIR /app
 
-# Copy the requirements file and cache
-COPY /cache /app/cache
+# Copy the requirements file
 COPY requirements.txt /app
 
 # Install Python dependencies in a virtual environment
 RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    pip install --no-index --find-links /app/cache -r requirements.txt
+    if [ -d /app/cache ]; then \
+        pip install --no-index --find-links /app/cache -r requirements.txt; \
+    else \
+        pip install -r requirements.txt; \
+    fi
 
 # Final stage
 FROM python:3.10-slim
