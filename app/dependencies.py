@@ -2,8 +2,6 @@
 import os
 import re
 import asyncio
-import aiofiles
-import aiofiles.os
 
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -17,87 +15,88 @@ from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_by_name, guess_lexer
 
+
+FOOTER_NAME = os.getenv("FOOTER_NAME", "Vontainment.com")
+
+DEFAULT_PDF_CSS = f"""
+@page {{
+    size: Letter;
+    margin: 0.25in 0.5in 0.5in 0.5in;
+    @bottom-left {{
+        content: \"© {datetime.now().year} {FOOTER_NAME}\";
+        font-size: 10px;
+        color: #66cc33;
+        margin-bottom: 0.25in;
+    }}
+    @bottom-right {{
+        content: \"Page \" counter(page) \" of \" counter(pages);
+        font-size: 10px;
+        color: #66cc33;
+        margin-bottom: 0.25in;
+    }}
+}}
+body {{
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #333;
+}}
+h1 {{
+    color: #66cc33;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #66cc33;
+    padding-bottom: 10px;
+}}
+h2, h3, h4, h5, h6 {{
+    color: #4b5161;
+    margin-bottom: 20px;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+}}
+p, table, ul, ol, pre, code, blockquote, img, li, thead, tbody, tr {{
+    page-break-inside: avoid;
+    orphans: 3;
+    widows: 3;
+}}
+p {{
+    margin: 1em 0;
+}}
+a {{
+    color: #0366d6;
+    text-decoration: none;
+}}
+a:hover {{
+    text-decoration: underline;
+}}
+table {{
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}}
+th, td {{
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}}
+th {{
+    background-color: #f4f4f4;
+    font-weight: bold;
+}}
+pre, code {{
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f4f4f4;
+    page-break-inside: avoid;
+}}
+"""
+
+CODE_BLOCK_RE = re.compile(r'<pre><code class="language-(\\w+)">(.+?)</code></pre>', re.DOTALL)
+
 # PDF generation tasks
 async def generate_pdf(pdf_title: str, body_content: str, css_content: str, output_path: Path, contains_code: bool) -> None:
     try:
-        # Retrieve environment variables for footer customization; set defaults if not available
-        footer_name = os.getenv("FOOTER_NAME", "Vontainment.com")
-        
-        # Define default CSS styles for the PDF layout and appearance
-        default_css = f"""
-        @page {{
-            size: Letter;
-            margin: 0.25in 0.5in 0.5in 0.5in;
-            @bottom-left {{
-                content: "© {datetime.now().year} {footer_name}";
-                font-size: 10px;
-                color: #66cc33;
-                margin-bottom: 0.25in;
-            }}
-            @bottom-right {{
-                content: "Page " counter(page) " of " counter(pages);
-                font-size: 10px;
-                color: #66cc33;
-                margin-bottom: 0.25in;
-            }}
-        }}
-        body {{
-            font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            line-height: 1.5;
-            color: #333; 
-        }}
-        h1 {{
-            color: #66cc33;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #66cc33;
-            padding-bottom: 10px;
-        }}
-        h2, h3, h4, h5, h6 {{
-            color: #4b5161;
-            margin-bottom: 20px;
-            page-break-after: avoid;
-            page-break-inside: avoid;
-        }}
-        p, table, ul, ol, pre, code, blockquote, img, li, thead, tbody, tr {{
-            page-break-inside: avoid;
-            orphans: 3;
-            widows: 3;
-        }}
-        p {{
-            margin: 1em 0;
-        }}
-        a {{
-            color: #0366d6;
-            text-decoration: none;
-        }}
-        a:hover {{
-            text-decoration: underline;
-        }}
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }}
-        th, td {{
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }}
-        th {{
-            background-color: #f4f4f4;
-            font-weight: bold;
-        }}
-        pre, code {{
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f4f4f4;
-            page-break-inside: avoid;
-        }}
-        """
-
         # Initialize combined_css with the default CSS wrapped in a <style> tag
-        combined_css = f"<style>{default_css}</style>"
+        combined_css = f"<style>{DEFAULT_PDF_CSS}</style>"
 
         # Append provided CSS content within its own <style> tag, if any
         if css_content:
@@ -105,8 +104,8 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
 
         # If the body content contains code, process it to highlight syntax
         if contains_code:
-            # Use regex to find all <pre><code> blocks in the body content
-            code_blocks = re.findall(r'<pre><code class="language-(\w+)">(.+?)</code></pre>', body_content, re.DOTALL)
+            # Use precompiled regex to find all <pre><code> blocks in the body content
+            code_blocks = CODE_BLOCK_RE.findall(body_content)
 
             # Prepare Pygments formatter and extract CSS for syntax highlighting
             formatter = HtmlFormatter(style='default')
@@ -147,22 +146,18 @@ async def generate_pdf(pdf_title: str, body_content: str, css_content: str, outp
         print(f"Error generating PDF: {str(e)}")  # Log the error
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")  # Raise HTTP exception for the error
 
+def _cleanup_downloads_sync(folder_path: str) -> None:
+    now = datetime.now()
+    age_limit = now - timedelta(days=7)
+    for path in Path(folder_path).iterdir():
+        if path.is_file() and datetime.fromtimestamp(path.stat().st_mtime) < age_limit:
+            path.unlink()
+
+
 # Function to clean up older files in the downloads folder
 async def cleanup_downloads_folder(folder_path: str) -> None:
     try:
-        now = datetime.now()  # Get the current date and time
-        age_limit = now - timedelta(days=7)  # Set age limit to 7 days
-        filenames = await asyncio.to_thread(os.listdir, folder_path)  # List files in the provided folder path
-        for filename in filenames:
-            file_path = os.path.join(folder_path, filename)  # Construct full file path
-            if await aiofiles.os.path.isfile(file_path):  # Check if it's a file
-                file_mod_time = datetime.fromtimestamp(
-                    await asyncio.to_thread(os.path.getmtime, file_path)  # Get the last modification time of the file
-
-                )
-                # Remove the file if it is older than the age limit
-                if file_mod_time < age_limit:
-                    await asyncio.to_thread(os.remove, file_path)
+        await asyncio.to_thread(_cleanup_downloads_sync, folder_path)
     except Exception as e:
         print(f"Cleanup error: {str(e)}")  # Log the cleanup error
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")  # Raise HTTP exception for the cleanup error

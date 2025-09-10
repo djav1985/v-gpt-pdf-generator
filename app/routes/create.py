@@ -1,7 +1,6 @@
 # /routes/create.py
 import os
-import random
-import string
+import secrets
 
 from datetime import datetime
 from pathlib import Path
@@ -22,7 +21,7 @@ async def create_pdf(
     api_key: Optional[str] = Depends(get_api_key),
 ) -> JSONResponse:
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
-    random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
+    random_chars = secrets.token_urlsafe(6)
     filename = (
         f"{random_chars}{filename_suffix}.pdf"
         if request.output_filename is None
