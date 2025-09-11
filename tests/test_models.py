@@ -84,3 +84,14 @@ def test_extra_fields_forbidden_response_models():
         ErrorResponse(status=400, code="err", message="m", extra="x")
     with pytest.raises(ValidationError):
         CreatePDFResponse(results="ok", url="http://example.com", extra="x")
+
+
+def test_create_pdf_response_allows_relative_url():
+    resp = CreatePDFResponse(results="ok", url="/downloads/file.pdf")
+    assert resp.url == "/downloads/file.pdf"
+
+
+@pytest.mark.parametrize("url", ["downloads/file.pdf", "ftp://example.com/file.pdf"])
+def test_create_pdf_response_url_validation(url):
+    with pytest.raises(ValidationError):
+        CreatePDFResponse(results="ok", url=url)

@@ -57,6 +57,40 @@ def test_create_pdf_endpoint_success(monkeypatch, tmp_path):
     assert files[0].suffix == ".pdf"
 
 
+def test_create_pdf_endpoint_relative_url(monkeypatch, tmp_path):
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "BASE_URL", "")
+
+    def fake_path(path_str):
+        assert path_str == "/app/downloads"
+        return tmp_path
+
+    monkeypatch.setattr(create_module, "Path", fake_path)
+    monkeypatch.setattr(create_module, "generate_pdf", fake_generate_pdf)
+
+    client = TestClient(app)
+
+    payload = {
+        "pdf_title": "Example PDF",
+        "contains_code": False,
+        "body_content": "<p>Hello World</p>",
+    }
+
+    response = client.post(
+        "/",
+        json=payload,
+        headers={"Authorization": "Bearer secret"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    CreatePDFResponse.model_validate(data)
+    assert data["url"].startswith("/downloads/")
+    files = list(tmp_path.iterdir())
+    assert len(files) == 1
+    assert files[0].suffix == ".pdf"
+
+
 def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
     monkeypatch.setattr(config.settings, "API_KEY", "secret")
     client = TestClient(app)

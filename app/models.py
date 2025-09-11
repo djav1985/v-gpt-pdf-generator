@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 # Request model for creating a PDF
@@ -118,9 +118,18 @@ class CreatePDFResponse(BaseModel):
     results: str = Field(
         ..., description="Outcome message for the PDF generation request"
     )
-    url: HttpUrl = Field(
-        ..., description="URL where the generated PDF can be downloaded"
+    url: str = Field(
+        ..., description="URL where the generated PDF can be downloaded",
+        json_schema_extra={"format": "uri"},
     )
+
+    @field_validator("url")
+    def validate_url(cls, value: str) -> str:
+        if value.startswith("http://") or value.startswith("https://"):
+            return value
+        if value.startswith("/"):
+            return value
+        raise ValueError("url must be absolute or start with '/' for a relative path")
 
     model_config = ConfigDict(
         extra="forbid",
