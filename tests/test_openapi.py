@@ -1,5 +1,4 @@
-import os
-
+import app.config as config
 from app.main import app
 
 
@@ -9,7 +8,7 @@ def test_openapi_metadata():
     assert schema["openapi"] == "3.1.0"
     assert schema["servers"] == [
         {
-            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}",
+            "url": f"{config.settings.BASE_URL}{config.settings.ROOT_PATH}",
             "description": "Base API server",
         }
     ]

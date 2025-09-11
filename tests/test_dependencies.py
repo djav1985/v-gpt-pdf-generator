@@ -5,11 +5,12 @@ import pytest
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
+import app.config as config
 from app.dependencies import cleanup_downloads_folder, get_api_key
 
 
 def test_get_api_key_valid(monkeypatch):
-    monkeypatch.setenv("API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="secret",
@@ -19,7 +20,7 @@ def test_get_api_key_valid(monkeypatch):
 
 
 def test_get_api_key_invalid(monkeypatch):
-    monkeypatch.setenv("API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="wrong",
@@ -30,7 +31,7 @@ def test_get_api_key_invalid(monkeypatch):
 
 
 def test_get_api_key_no_env(monkeypatch):
-    monkeypatch.delenv("API_KEY", raising=False)
+    monkeypatch.setattr(config.settings, "API_KEY", None)
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="provided",

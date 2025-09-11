@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import CreatePDFRequest
+from app.models import CreatePDFRequest, CreatePDFResponse, ErrorResponse
 
 
 def test_create_pdf_request_missing_fields():
@@ -68,3 +68,19 @@ def test_output_filename_sanitized():
         output_filename=" My_File ",
     )
     assert req.output_filename == "my_file.pdf"
+
+
+def test_extra_fields_forbidden_request():
+    with pytest.raises(ValidationError):
+        CreatePDFRequest(
+            pdf_title="Title",
+            body_content="<p>x</p>",
+            unknown="oops",
+        )
+
+
+def test_extra_fields_forbidden_response_models():
+    with pytest.raises(ValidationError):
+        ErrorResponse(status=400, code="err", message="m", extra="x")
+    with pytest.raises(ValidationError):
+        CreatePDFResponse(results="ok", url="http://example.com", extra="x")

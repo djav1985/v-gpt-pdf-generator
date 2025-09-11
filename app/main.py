@@ -1,5 +1,4 @@
 # main.py
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path as FilePath
 
@@ -10,6 +9,7 @@ from fastapi.openapi.utils import get_openapi
 from .routes.create import pdf_router
 from .models import ErrorResponse
 from .dependencies import cleanup_downloads_folder
+from .config import settings
 
 tags_metadata = [
     {"name": "PDF", "description": "Operations for creating PDF documents."}
@@ -32,11 +32,11 @@ app = FastAPI(
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
     openapi_tags=tags_metadata,
-    root_path=os.getenv("ROOT_PATH", ""),
+    root_path=settings.ROOT_PATH,
     root_path_in_servers=False,
     servers=[
         {
-            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '')}",
+            "url": f"{settings.BASE_URL}{settings.ROOT_PATH}",
             "description": "Base API server",
         }
     ]

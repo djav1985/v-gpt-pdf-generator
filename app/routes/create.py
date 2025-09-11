@@ -1,5 +1,4 @@
 # /routes/create.py
-import os
 import random
 import string
 from datetime import datetime
@@ -9,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..models import CreatePDFRequest, CreatePDFResponse, ErrorResponse
 from ..dependencies import generate_pdf, get_api_key
+from ..config import settings
 
 pdf_router = APIRouter()
 
@@ -95,15 +95,15 @@ async def create_pdf(request: CreatePDFRequest):
         await generate_pdf(
             pdf_title=request.pdf_title,
             body_content=request.body_content,
-            css_content=request.css_content or '',  # Directly using request.css_content
+            css_content=request.css_content,
             output_path=output_path,
             contains_code=request.contains_code  # Passing contains_code directly
         )
 
-        return {
-            "results": "PDF generation is complete. You can download it from the following URL:",
-            "url": f"{os.getenv('BASE_URL')}{os.getenv('ROOT_PATH', '')}/downloads/{filename}",
-        }
+        return CreatePDFResponse(
+            results="PDF generation is complete. You can download it from the following URL:",
+            url=f"{settings.BASE_URL}{settings.ROOT_PATH}/downloads/{filename}",
+        )
     except Exception as e:
         print(f"An error occurred: {e}")
         raise HTTPException(

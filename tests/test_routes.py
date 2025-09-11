@@ -2,6 +2,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+import app.config as config
+from app.models import CreatePDFResponse
+
 Path("/app/downloads").mkdir(parents=True, exist_ok=True)
 
 from app.main import app  # noqa: E402
@@ -20,8 +23,8 @@ async def fake_generate_pdf(
 
 
 def test_create_pdf_endpoint_success(monkeypatch, tmp_path):
-    monkeypatch.setenv("API_KEY", "secret")
-    monkeypatch.setenv("BASE_URL", "http://test")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "BASE_URL", "http://test")
 
     def fake_path(path_str):
         assert path_str == "/app/downloads"
@@ -46,6 +49,8 @@ def test_create_pdf_endpoint_success(monkeypatch, tmp_path):
 
     assert response.status_code == 200
     data = response.json()
+    CreatePDFResponse.model_validate(data)
+    assert data["results"].startswith("PDF generation is complete")
     assert data["url"].startswith("http://test")
     files = list(tmp_path.iterdir())
     assert len(files) == 1
@@ -53,7 +58,7 @@ def test_create_pdf_endpoint_success(monkeypatch, tmp_path):
 
 
 def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
-    monkeypatch.setenv("API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
     client = TestClient(app)
     payload = {
         "pdf_title": "Example PDF",
@@ -75,8 +80,8 @@ def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
 
 
 def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
-    monkeypatch.setenv("API_KEY", "secret")
-    monkeypatch.setenv("BASE_URL", "http://test")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "BASE_URL", "http://test")
 
     def fake_path(path_str):
         assert path_str == "/app/downloads"
@@ -105,6 +110,8 @@ def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
     )
     assert response.status_code == 200
     data = response.json()
+    CreatePDFResponse.model_validate(data)
+    assert data["results"].startswith("PDF generation is complete")
     assert data["url"].startswith("http://test")
     files = list(tmp_path.iterdir())
     assert len(files) == 1
@@ -112,8 +119,8 @@ def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
 
 
 def test_create_pdf_endpoint_with_uppercase_tags(monkeypatch, tmp_path):
-    monkeypatch.setenv("API_KEY", "secret")
-    monkeypatch.setenv("BASE_URL", "http://test")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "BASE_URL", "http://test")
 
     def fake_path(path_str):
         assert path_str == "/app/downloads"
@@ -140,13 +147,16 @@ def test_create_pdf_endpoint_with_uppercase_tags(monkeypatch, tmp_path):
         headers={"Authorization": "Bearer secret"},
     )
     assert response.status_code == 200
+    data = response.json()
+    CreatePDFResponse.model_validate(data)
+    assert data["results"].startswith("PDF generation is complete")
     files = list(tmp_path.iterdir())
     assert len(files) == 1
     assert files[0].suffix == ".pdf"
 
 
 def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
-    monkeypatch.setenv("API_KEY", "secret")
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
 
     async def fail_generate_pdf(*args, **kwargs):
         raise Exception("boom")
@@ -171,6 +181,23 @@ def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
         "message": "Internal Server Error",
         "details": "boom",
     }
+
+
+def test_create_pdf_endpoint_rejects_extra_fields(monkeypatch):
+    monkeypatch.setattr(config.settings, "API_KEY", "secret")
+    client = TestClient(app)
+    payload = {
+        "pdf_title": "Example PDF",
+        "contains_code": False,
+        "body_content": "<p>Hello World</p>",
+        "unexpected": "value",
+    }
+    response = client.post(
+        "/",
+        json=payload,
+        headers={"Authorization": "Bearer secret"},
+    )
+    assert response.status_code == 422
 
 
 def test_download_route_serves_file():
