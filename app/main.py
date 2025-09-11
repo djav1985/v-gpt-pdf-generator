@@ -2,6 +2,7 @@
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path as FilePath
+from typing import Generator
 
 from fastapi import FastAPI, HTTPException, Path, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -16,7 +17,7 @@ tags_metadata = [
 ]
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> Generator[None, Any, None]:
     downloads_path = FilePath("/app/downloads")
     downloads_path.mkdir(parents=True, exist_ok=True)
     await cleanup_downloads_folder(str(downloads_path))
@@ -74,7 +75,7 @@ app.include_router(pdf_router)
 )
 def download_pdf(
     filename: str = Path(..., description="Name of the PDF file to download", example="example.pdf")
-):
+) -> FileResponse:
     downloads_dir = FilePath("/app/downloads").resolve()
     file_path = FilePath("/app/downloads", filename).resolve()
     if not str(file_path).startswith(str(downloads_dir)):
@@ -120,7 +121,7 @@ app.openapi = custom_openapi
 
 
 @app.exception_handler(HTTPException)
-def http_exception_handler(request: Request, exc: HTTPException):
+def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     if isinstance(exc.detail, dict):
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
