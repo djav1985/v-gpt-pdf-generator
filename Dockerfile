@@ -3,7 +3,7 @@ FROM python:3.10-slim as builder
 
 WORKDIR /app
 
-# Install build tools for any packages that might need compilation
+# Install build tools for Python packages that may need compilation
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
 COPY /cache /app/cache
 COPY requirements.txt /app
 
-# Create venv and install deps (prefer cache, fall back to PyPI)
+# Create venv and install deps (prefer cache, fallback to PyPI)
 RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
     pip install --no-cache-dir --find-links /app/cache -r requirements.txt || \
@@ -27,11 +27,11 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# System libs required by WeasyPrint and friends
+# Install system libs required by WeasyPrint & friends
 RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-2.0-0 \   
     libglib2.0-0 \
     libffi-dev \
     libxml2-dev \
@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y \
 # Copy virtual env from builder
 COPY --from=builder /app/venv /app/venv
 
-# Copy your application
+# Copy app code
 COPY ./app /app
 
 EXPOSE 8888
