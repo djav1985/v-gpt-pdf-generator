@@ -1,4 +1,5 @@
-# Build stage
+# syntax=docker/dockerfile:1.4
+
 FROM python:3.10-slim as builder
 
 WORKDIR /app
@@ -12,17 +13,20 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and cache
-COPY /cache /app/cache
-COPY requirements.txt /app
+COPY requirements.txt .
+
+ARG GITEA_REPOSITORY
+ARG GITEA_REF_NAME
 
 # Create venv and install deps (prefer cache, fallback to PyPI)
-RUN python -m venv /app/venv && \
+RUN --mount=type=cache,target=/opt/hostedtoolcache/pip \
+    python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    pip install --no-cache-dir --find-links /app/cache -r requirements.txt || \
-    pip install --no-cache-dir -r requirements.txt
+    PIP_CACHE_DIR=/opt/hostedtoolcache/${GITEA_REPOSITORY}-${GITEA_REF_NAME}/pip \
+    pip install --no-index --find-links=$PIP_CACHE_DIR -r requirements.txt || \
+    pip install -r requirements.txt
 
-# Final stage
+# ---- Final stage ----
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -31,16 +35,13 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libcairo2 \
     libpango-1.0-0 \
-    libgdk-pixbuf-2.0-0 \   
+    libgdk-pixbuf-2.0-0 \
     libglib2.0-0 \
     libffi-dev \
     libxml2-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual env from builder
 COPY --from=builder /app/venv /app/venv
-
-# Copy app code
 COPY ./app /app
 
 EXPOSE 8888
