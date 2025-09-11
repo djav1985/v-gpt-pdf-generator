@@ -1,7 +1,8 @@
 # /routes/create.py
 import random
 import string
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -9,6 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..models import CreatePDFRequest, CreatePDFResponse, ErrorResponse
 from ..dependencies import generate_pdf, get_api_key
 from ..config import settings
+
+
+logger = logging.getLogger(__name__)
 
 pdf_router = APIRouter()
 
@@ -80,8 +84,19 @@ pdf_router = APIRouter()
         },
     },
 )
-async def create_pdf(request: CreatePDFRequest):
-    filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
+async def create_pdf(request: CreatePDFRequest) -> CreatePDFResponse:
+    """Generate a PDF file from the provided request data.
+
+    Args:
+        request: Parameters for PDF generation.
+
+    Returns:
+        CreatePDFResponse: Information about the generated PDF file.
+
+    Raises:
+        HTTPException: If PDF generation fails or a filesystem error occurs.
+    """
+    filename_suffix = datetime.now(tz=timezone.utc).strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
     filename = (
         f"{random_chars}{filename_suffix}.pdf"
@@ -104,8 +119,10 @@ async def create_pdf(request: CreatePDFRequest):
             results="PDF generation is complete. You can download it from the following URL:",
             url=f"{settings.BASE_URL}{settings.ROOT_PATH}/downloads/{filename}",
         )
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except HTTPException:
+        raise
+    except OSError as e:
+        logger.error("File error creating PDF: %s", e)
         raise HTTPException(
             status_code=500,
             detail={
@@ -114,4 +131,15 @@ async def create_pdf(request: CreatePDFRequest):
                 "message": "Internal Server Error",
                 "details": str(e),
             },
-        )
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected error creating PDF")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "internal_server_error",
+                "message": "Internal Server Error",
+                "details": str(e),
+            },
+        ) from e

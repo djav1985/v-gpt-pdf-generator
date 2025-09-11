@@ -1,13 +1,19 @@
 # Importing required libraries and modules
-import os
 import asyncio
+import logging
 import re
 
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from weasyprint import HTML
+try:  # pragma: no cover - fallback for older WeasyPrint versions
+    from weasyprint.exceptions import WeasyPrintError
+except Exception:  # pragma: no cover
+    class WeasyPrintError(Exception):
+        """Fallback WeasyPrint exception."""
+
 from fastapi import Security, HTTPException
 from fastapi.security import APIKeyHeader
 from .config import settings
@@ -15,6 +21,10 @@ from .config import settings
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.util import ClassNotFound
+
+
+logger = logging.getLogger(__name__)
 
 
 async def generate_pdf(
@@ -77,7 +87,7 @@ async def generate_pdf(
                 code = match.group(2)
                 try:
                     lexer = get_lexer_by_name(language)
-                except Exception:
+                except ClassNotFound:
                     lexer = guess_lexer(code)  # Fallback if the language is not recognized
                 return highlight(code, lexer, formatter)
 
@@ -101,8 +111,8 @@ async def generate_pdf(
         await asyncio.to_thread(
             HTML(string=html_template).write_pdf, target=output_path
         )
-    except Exception as e:
-        print(f"Error generating PDF: {str(e)}")
+    except WeasyPrintError as e:
+        logger.error("Error generating PDF: %s", e)
         raise HTTPException(
             status_code=500,
             detail={
@@ -111,19 +121,42 @@ async def generate_pdf(
                 "message": "Error generating PDF",
                 "details": str(e),
             },
-        )
+        ) from e
+    except OSError as e:
+        logger.error("Filesystem error generating PDF: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "pdf_generation_error",
+                "message": "Error generating PDF",
+                "details": str(e),
+            },
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected error generating PDF")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "pdf_generation_error",
+                "message": "Error generating PDF",
+                "details": str(e),
+            },
+        ) from e
 
 
 def _cleanup_folder(folder_path: str) -> None:
     """Remove files older than 7 days from the downloads folder."""
-    now: datetime = datetime.now()
+    now: datetime = datetime.now(tz=timezone.utc)
     age_limit: datetime = now - timedelta(days=7)
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        if os.path.isfile(file_path):
-            file_mod_time: datetime = datetime.fromtimestamp(os.path.getmtime(file_path))
+    for file in Path(folder_path).iterdir():
+        if file.is_file():
+            file_mod_time: datetime = datetime.fromtimestamp(
+                file.stat().st_mtime, tz=timezone.utc
+            )
             if file_mod_time < age_limit:
-                os.remove(file_path)
+                file.unlink()
 
 
 async def cleanup_downloads_folder(folder_path: str) -> None:
@@ -138,8 +171,8 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
     """
     try:
         await asyncio.to_thread(_cleanup_folder, folder_path)
-    except Exception as e:
-        print(f"Cleanup error: {str(e)}")
+    except OSError as e:
+        logger.error("Cleanup error: %s", e)
         raise HTTPException(
             status_code=500,
             detail={
@@ -148,7 +181,18 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
                 "message": "Cleanup error",
                 "details": str(e),
             },
-        )
+        ) from e
+    except Exception as e:
+        logger.exception("Unexpected cleanup error")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "cleanup_error",
+                "message": "Cleanup error",
+                "details": str(e),
+            },
+        ) from e
 
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)

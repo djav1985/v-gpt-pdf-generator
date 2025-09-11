@@ -32,5 +32,8 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - Adopted Pydantic v2 `ConfigDict` configuration for `CreatePDFResponse`.
 - Restricted model responses to forbid extra fields and return `CreatePDFResponse` from the create route.
 - Pass CSS content directly to the PDF generator without forcing an empty string.
+- Used timezone-aware datetimes and refactored downloads cleanup with `pathlib`.
+- Narrowed exception handling with explicit logging.
+- Documented create route with type hints and docstring.
 ### Fixed
 - Create endpoint now returns a relative download URL when `BASE_URL` is unset instead of failing.
