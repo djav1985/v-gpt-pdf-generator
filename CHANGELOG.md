@@ -8,3 +8,4 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - `CreatePDFResponse` model and request field examples.
 - Secured API key handling and enriched route metadata.
 - OpenAPI specification saved as `openapi.json` in the project root.
+- Initial test suite covering API key validation, PDF creation endpoint, and downloads cleanup.
