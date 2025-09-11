@@ -2,7 +2,7 @@
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path as FilePath
-from typing import Generator
+from typing import AsyncGenerator, Any
 
 from fastapi import FastAPI, HTTPException, Path, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -17,7 +17,7 @@ tags_metadata = [
 ]
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> Generator[None, Any, None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     downloads_path = FilePath("/app/downloads")
     downloads_path.mkdir(parents=True, exist_ok=True)
     await cleanup_downloads_folder(str(downloads_path))
