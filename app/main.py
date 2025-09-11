@@ -3,9 +3,12 @@ import os
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse
 
-from routes.create import pdf_router
+from .routes.create import pdf_router
+
+tags_metadata = [
+    {"name": "PDF", "description": "Operations for creating PDF documents."}
+]
 
 # FastAPI application instance
 app = FastAPI(
@@ -20,6 +23,17 @@ app = FastAPI(
             "description": "Base API server",
         }
     ],
+    contact={
+        "name": "Project Support",
+        "url": "https://example.com/contact",
+        "email": "support@example.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    terms_of_service="https://example.com/terms",
+    openapi_tags=tags_metadata,
 )
 
 # Including Routers for different endpoints

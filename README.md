@@ -164,6 +164,7 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
    ```
 
     Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
+   A generated copy of this specification is available in `openapi.json` at the project root.
 
 2. **Generate a PDF**:
    Send a POST request to the root endpoint with a JSON body:
