@@ -8,24 +8,22 @@ from pydantic import BaseModel, Field, HttpUrl, validator
 class CreatePDFRequest(BaseModel):
     pdf_title: str = Field(
         ...,
-        min_length=1,
-        max_length=200,
         description=(
             "Title of the PDF document; will be used as both the "
             "<h1>$title</h1> in the body and the <title>$title</title>."
         ),
-        example="Example PDF",
+        min_length=1,
+        max_length=200
     )
     contains_code: bool = Field(
-        default=False,
+        False,
         description=(
             "Indicates whether the 'body_content' includes code blocks. "
             "If set to true, the content may contain pre-formatted code blocks "
             "using <pre><code> tags. To include code blocks, wrap snippets in "
             "<pre><code>...</code></pre> tags and specify the language using a "
             "class attribute, e.g., <code class=\"language-python\"></code>."
-        ),
-        example=True,
+        )
     )
     body_content: str = Field(
         ...,
@@ -39,26 +37,23 @@ class CreatePDFRequest(BaseModel):
             "and IDs within the HTML elements and use the 'css_content' "
             "parameter to apply custom styles. Images should use absolute URLs. "
             "Scripts and embedded forms are not supported."
-        ),
-        example="<p>Hello World</p>",
+        )
     )
     css_content: Optional[str] = Field(
-        default=None,
+        None,
         description=(
             "Optional CSS styles to format the 'body_content'. Supports "
             "standard selectors and properties but disallows '@import', "
             "'url()' functions, and '<script>' tags."
-        ),
-        example="p { color: blue; }",
+        )
     )
     output_filename: Optional[str] = Field(
-        default=None,
+        None,
         description=(
             "Optional filename for the generated PDF. Use lowercase letters, "
             "numbers, hyphens, or underscores. Path separators are not allowed "
             "and the '.pdf' extension is appended automatically."
-        ),
-        example="example-pdf",
+        )
     )
 
     @validator("pdf_title", pre=True)
@@ -107,18 +102,20 @@ class CreatePDFRequest(BaseModel):
 # Response model for errors
 class ErrorResponse(BaseModel):
     status: int = Field(
-        ..., description="HTTP status code of the error", example=403
+        ...,
+        description="HTTP status code of the error"
     )
     code: str = Field(
-        ..., description="Application-specific error identifier", example="invalid_api_key"
+        ...,
+        description="Application-specific error identifier"
     )
     message: str = Field(
-        ..., description="Human-readable summary of the error", example="Invalid or missing API key"
+        ...,
+        description="Human-readable summary of the error"
     )
     details: Optional[str] = Field(
         None,
-        description="Additional information that may help resolve the error",
-        example="Provide a valid API key in the Authorization header",
+        description="Additional information that may help resolve the error"
     )
 
 
@@ -126,12 +123,17 @@ class ErrorResponse(BaseModel):
 class CreatePDFResponse(BaseModel):
     results: str = Field(
         ...,
-        description="Outcome message for the PDF generation request",
-        example="PDF generation is complete. You can download it from the following URL:",
+        description="Outcome message for the PDF generation request"
     )
     url: HttpUrl = Field(
         ...,
-        description="URL where the generated PDF can be downloaded",
-        json_schema_extra={"format": "uri"},
-        example="https://example.com/downloads/example-pdf.pdf",
+        description="URL where the generated PDF can be downloaded"
     )
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "results": "PDF generation is complete. You can download it from the following URL:",
+                "url": "https://example.com/downloads/example-pdf.pdf"
+            }
+        }
