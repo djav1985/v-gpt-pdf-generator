@@ -20,3 +20,4 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - Added strict validation for `CreatePDFRequest` fields including title length, content sanitization, CSS restrictions, and normalized output filenames.
 - Simplified OpenAPI server configuration using `BASE_URL` and `ROOT_PATH` environment variables.
 - Replaced deprecated `@validator` decorators with Pydantic v2 `@field_validator` in `CreatePDFRequest`.
+- Manage startup and shutdown with FastAPI lifespan context.
