@@ -32,9 +32,6 @@ async def test_generate_pdf_success_extra_css(monkeypatch, tmp_path):
     monkeypatch.setattr(deps, "HtmlFormatter", DummyFormatter)
     monkeypatch.setattr(deps, "get_lexer_by_name", lambda name: None)
     monkeypatch.setattr(deps, "guess_lexer", lambda code: None)
-    monkeypatch.setattr(
-        deps.re, "findall", lambda *args, **kwargs: [("python", 'print("hi")')]
-    )
 
     output = tmp_path / "out.pdf"
 
@@ -79,9 +76,6 @@ async def test_generate_pdf_highlights_code(monkeypatch, tmp_path):
     monkeypatch.setattr(deps, "HtmlFormatter", DummyFormatter)
     monkeypatch.setattr(deps, "get_lexer_by_name", lambda name: None)
     monkeypatch.setattr(deps, "guess_lexer", lambda code: None)
-    monkeypatch.setattr(
-        deps.re, "findall", lambda *args, **kwargs: [("python", 'print("hi")')]
-    )
 
     output = tmp_path / "out.pdf"
     body = '<pre><code class="language-python">print("hi")</code></pre>'

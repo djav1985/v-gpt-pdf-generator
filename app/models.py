@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict
 
 
 # Request model for creating a PDF
@@ -118,10 +118,11 @@ class CreatePDFResponse(BaseModel):
         ..., description="URL where the generated PDF can be downloaded"
     )
 
-    class Config:
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "results": "PDF generation is complete. You can download it from the following URL:",
                 "url": "https://example.com/downloads/example-pdf.pdf",
             }
         }
+    )
