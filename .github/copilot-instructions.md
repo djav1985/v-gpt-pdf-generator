@@ -1,52 +1,51 @@
+
 # Copilot Instructions for AI Coding Agents
 
 ## Project Overview
-- This is a FastAPI-based microservice for generating PDFs from HTML, with asynchronous processing and Docker-based deployment.
-- Key files: `app/main.py` (FastAPI app entry), `app/routes/create.py` (PDF creation endpoint), `app/dependencies.py` (PDF generation logic, API key validation), `app/models.py` (request/response models).
-- PDF generation uses WeasyPrint; requests are POSTed to `/` with JSON payloads, and results are served from `/downloads`.
+- **Purpose:** FastAPI microservice for generating PDFs from HTML, designed for async processing and containerized deployment.
+- **Key files:**
+  - `app/main.py`: FastAPI app entry, mounts static files, includes routes.
+  - `app/routes/create.py`: Handles PDF creation endpoint, POST requests, API key validation.
+  - `app/dependencies.py`: Contains PDF generation logic (WeasyPrint), API key validation, and business logic.
+  - `app/models.py`: Pydantic models for request/response validation.
+  - `tests/`: Pytest-based tests for dependencies and routes.
 
 ## Architecture & Data Flow
-- **Entry point:** `app/main.py` initializes FastAPI, mounts static files, and includes routes.
-- **PDF creation:** `app/routes/create.py` handles POST requests, validates API keys, and calls PDF generation logic in `app/dependencies.py`.
-- **Models:** `app/models.py` defines Pydantic models for request validation.
-- **Downloads:** Generated PDFs are saved to a static folder and served via `/downloads`.
-- **Security:** API key required for PDF creation; validated in dependencies.
+- **Startup:**
+  - `main.py` initializes FastAPI, mounts `/downloads` for static PDF serving, and includes route modules.
+- **PDF Generation:**
+  - POST to `/` with JSON payload triggers PDF creation (see example below).
+  - API key is required and validated in dependencies.
+  - PDF is generated asynchronously and saved to a static folder, accessible via `/downloads/{filename}`.
+- **Models:**
+  - All request/response schemas are defined in `models.py` for strict validation.
 
 ## Developer Workflows
 - **Run locally:**
-  - Use Docker Compose: `docker-compose up` (or `-d` for detached mode).
-  - Service runs on port 8888 by default.
-- **Configuration:**
-  - Set environment variables in `docker-compose.yml` (e.g., `BASE_URL`, `API_KEY`, `WORKERS`).
+  - Use Docker Compose: `docker-compose up` (or `-d` for detached mode). Default port: 8888.
+  - Environment variables (e.g., `BASE_URL`, `API_KEY`, `WORKERS`) are set in `docker-compose.yml`.
+- **Testing:**
+  - Run tests with `pytest tests/` (see `AGENTS.md` for test policy).
+- **Linting:**
+  - Use PEP 8 style; run `flake8 app/ tests/` for lint checks.
 - **API usage:**
-  - POST to `/` with JSON body (see README for example payload).
-  - Download PDFs from `/downloads`.
-- **OpenAPI docs:**
-  - Available at `/openapi.json` for integration/testing.
+  - POST to `/` with JSON body (see below). Download PDFs from `/downloads`.
+- **Docs:**
+  - OpenAPI spec at `/openapi.json`.
 
 ## Conventions & Patterns
 - **Modular structure:**
-  - All business logic is separated into `app/dependencies.py`.
-  - Routing is in `app/routes/`, models in `app/models.py`.
+  - Business logic in `dependencies.py`, routing in `routes/`, models in `models.py`.
 - **Error handling:**
-  - API key errors and PDF generation exceptions are handled with clear responses.
-- **Code style:**
-  - Follows PEP 8, with clear variable names and modular functions.
-- **Documentation:**
-  - Update `README.md` and `CHANGELOG.md` for any public-facing changes (see `AGENTS.md` for doc sync policy).
+  - API key and PDF generation errors return clear JSON responses.
+- **Documentation sync:**
+  - Always update `README.md`, `CHANGELOG.md`, and public docs together (see `AGENTS.md`).
+- **Tests:**
+  - All new features/bugfixes require or update tests in `tests/`.
 
 ## Integration Points
-- **External libraries:**
-  - FastAPI, WeasyPrint, Pydantic, aiohttp, aiofiles, uvicorn.
-- **Containerization:**
-  - Dockerfile and docker-compose.yml define build/run environment.
-
-## Project-Specific Guidance
-- No automated test suite is present; add tests in a dedicated test directory if contributing.
-- Always sync documentation across `README.md`, `CHANGELOG.md`, and other public docs.
-- Reference `AGENTS.md` for contributor workflow and code quality expectations.
-
----
+- **External libraries:** FastAPI, WeasyPrint, Pydantic, aiohttp, aiofiles, uvicorn.
+- **Containerization:** Dockerfile and docker-compose.yml define build/run environment.
 
 ## Example: PDF Generation Request
 ```json
@@ -59,6 +58,5 @@
 }
 ```
 
----
-
-For questions about architecture, workflows, or conventions, see `README.md` and `AGENTS.md`.
+## References
+- For architecture, workflows, or conventions, see `README.md` and `AGENTS.md`.
