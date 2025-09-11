@@ -1,5 +1,7 @@
 # main.py
 import os
+from contextlib import asynccontextmanager
+from pathlib import Path as FilePath
 
 from fastapi import FastAPI, HTTPException, Path, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -7,16 +9,28 @@ from fastapi.openapi.utils import get_openapi
 
 from .routes.create import pdf_router
 from .models import ErrorResponse
+from .dependencies import cleanup_downloads_folder
 
 tags_metadata = [
     {"name": "PDF", "description": "Operations for creating PDF documents."}
 ]
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    downloads_path = FilePath("/app/downloads")
+    downloads_path.mkdir(parents=True, exist_ok=True)
+    await cleanup_downloads_folder(str(downloads_path))
+    try:
+        yield
+    finally:
+        await cleanup_downloads_folder(str(downloads_path))
+
 # FastAPI application instance
 app = FastAPI(
+    lifespan=lifespan,
     title="PDF Generation API",
     version="0.1.0",
-    description="A FastAPI application that generates PDFs from HTML and CSS content",    
+    description="A FastAPI application that generates PDFs from HTML and CSS content",
     openapi_tags=tags_metadata,
     root_path=os.getenv("ROOT_PATH", ""),
     root_path_in_servers=False,
