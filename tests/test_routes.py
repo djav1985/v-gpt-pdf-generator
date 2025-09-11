@@ -66,6 +66,7 @@ def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
         headers={"Authorization": "Bearer wrong"},
     )
     assert response.status_code == 403
+    assert response.json() == {"detail": "Invalid or missing API key"}
 
 
 def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
@@ -125,3 +126,14 @@ def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
         headers={"Authorization": "Bearer secret"},
     )
     assert response.status_code == 500
+    assert response.json() == {"detail": "boom"}
+
+
+def test_download_route_serves_file():
+    test_file = Path("/app/downloads/test.pdf")
+    test_file.write_bytes(b"PDF")
+    client = TestClient(app)
+    response = client.get(app.url_path_for("download_pdf", filename="test.pdf"))
+    assert response.status_code == 200
+    assert response.content == b"PDF"
+    test_file.unlink()

@@ -104,7 +104,12 @@ class CreatePDFRequest(BaseModel):
         return f"{value}.pdf"
 
 
+# Response model for errors
+class ErrorResponse(BaseModel):
+    detail: str
+
+
 # Response model for PDF creation
 class CreatePDFResponse(BaseModel):
     results: str
-    url: HttpUrl
+    url: HttpUrl = Field(..., json_schema_extra={"format": "uri"})

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..models import CreatePDFRequest, CreatePDFResponse
+from ..models import CreatePDFRequest, CreatePDFResponse, ErrorResponse
 from ..dependencies import generate_pdf, get_api_key
 
 pdf_router = APIRouter()
@@ -21,8 +21,8 @@ pdf_router = APIRouter()
     tags=["PDF"],
     response_model=CreatePDFResponse,
     responses={
-        403: {"description": "Invalid or missing API key"},
-        500: {"description": "Internal Server Error"},
+        403: {"description": "Invalid or missing API key", "model": ErrorResponse},
+        500: {"description": "Internal Server Error", "model": ErrorResponse},
     },
     dependencies=[Depends(get_api_key)],
     openapi_extra={
@@ -52,7 +52,21 @@ pdf_router = APIRouter()
                         }
                     }
                 }
-            }
+            },
+            "403": {
+                "content": {
+                    "application/json": {
+                        "example": {"detail": "Invalid or missing API key"}
+                    }
+                }
+            },
+            "500": {
+                "content": {
+                    "application/json": {
+                        "example": {"detail": "Internal Server Error"}
+                    }
+                }
+            },
         },
     },
 )
