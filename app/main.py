@@ -16,26 +16,16 @@ tags_metadata = [
 app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
-    description="A FastAPI application that generates PDFs from HTML and CSS content",
-    root_path=os.getenv("ROOT_PATH", "/"),
+    description="A FastAPI application that generates PDFs from HTML and CSS content",    
+    openapi_tags=tags_metadata,
+    root_path=os.getenv("ROOT_PATH", ""),
     root_path_in_servers=False,
     servers=[
         {
-            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}",
+            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '')}",
             "description": "Base API server",
         }
-    ],
-    contact={
-        "name": "Project Support",
-        "url": "https://example.com/contact",
-        "email": "support@example.com",
-    },
-    license_info={
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT",
-    },
-    terms_of_service="https://example.com/terms",
-    openapi_tags=tags_metadata,
+    ]
 )
 
 # Including Routers for different endpoints
@@ -85,7 +75,7 @@ async def download_pdf(
     return FileResponse(file_path)
 
 
-def custom_openapi():
+def custom_openapi() -> dict:
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
