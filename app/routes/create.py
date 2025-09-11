@@ -6,18 +6,57 @@ from datetime import datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
-from starlette.responses import JSONResponse
 
-from models import CreatePDFRequest
-from dependencies import generate_pdf, cleanup_downloads_folder, get_api_key
+from ..models import CreatePDFRequest, CreatePDFResponse
+from ..dependencies import generate_pdf, get_api_key
 
 pdf_router = APIRouter()
 
-@pdf_router.post("/", operation_id="create_pdf")
-async def create_pdf(
-    request: CreatePDFRequest,
-    api_key: str = Depends(get_api_key),
-):
+
+@pdf_router.post(
+    "/",
+    operation_id="create_pdf",
+    summary="Create PDF",
+    description="Generate a PDF file from HTML and CSS content.",
+    tags=["PDF"],
+    response_model=CreatePDFResponse,
+    responses={
+        403: {"description": "Invalid or missing API key"},
+        500: {"description": "Internal Server Error"},
+    },
+    dependencies=[Depends(get_api_key)],
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "application/json": {
+                    "example": {
+                        "pdf_title": "Example PDF",
+                        "contains_code": True,
+                        "body_content": "<p>Hello World</p>",
+                        "css_content": "p { color: blue; }",
+                        "output_filename": "example-pdf",
+                    }
+                }
+            }
+        },
+        "responses": {
+            "200": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "results": (
+                                "PDF generation is complete. You can download it from the "
+                                "following URL:"
+                            ),
+                            "url": "https://example.com/downloads/example-pdf.pdf",
+                        }
+                    }
+                }
+            }
+        },
+    },
+)
+async def create_pdf(request: CreatePDFRequest):
     filename_suffix = datetime.now().strftime("-%Y%m%d%H%M%S")
     random_chars = "".join(random.choices(string.ascii_letters + string.digits, k=6))
     filename = (

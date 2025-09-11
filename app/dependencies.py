@@ -7,15 +7,13 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional
 
-from weasyprint import HTML, CSS
-from fastapi import Security, HTTPException, Depends
+from weasyprint import HTML
+from fastapi import Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_by_name, guess_lexer
-
-from fastapi import Request
 
 
 async def generate_pdf(
@@ -113,7 +111,6 @@ async def generate_pdf(
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
 
 
-
 async def cleanup_downloads_folder(folder_path: str) -> None:
     """
     Remove files older than 7 days from the specified downloads folder.
@@ -141,24 +138,21 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
 
 
-
 async def get_api_key(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
-) -> Optional[str]:
+    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
+) -> str:
     """
     Validate the provided API key from the Authorization header.
 
     Args:
-        credentials (Optional[HTTPAuthorizationCredentials]): The HTTP credentials from the request header.
+        credentials (HTTPAuthorizationCredentials): The HTTP credentials from the request header.
 
     Returns:
-        Optional[str]: The API key if valid, otherwise raises HTTPException.
+        str: The API key if valid.
 
     Raises:
         HTTPException: If the API key is missing or invalid.
     """
-    if os.getenv("API_KEY") and (
-        not credentials or credentials.credentials != os.getenv("API_KEY")
-    ):
+    if os.getenv("API_KEY") and credentials.credentials != os.getenv("API_KEY"):
         raise HTTPException(status_code=403, detail="Invalid or missing API key")
-    return credentials.credentials if credentials else None
+    return credentials.credentials
