@@ -62,7 +62,7 @@ async def create_pdf(request: CreatePDFRequest):
     filename = (
         f"{random_chars}{filename_suffix}.pdf"
         if request.output_filename is None
-        else f"{request.output_filename}{filename_suffix}.pdf"
+        else f"{request.output_filename[:-4]}{filename_suffix}.pdf"
     )
     output_path = Path("/app/downloads") / filename
 

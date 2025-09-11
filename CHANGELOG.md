@@ -10,3 +10,5 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - OpenAPI specification saved as `openapi.json` in the project root.
 - Initial test suite covering API key validation, PDF creation endpoint, and downloads cleanup.
 - Expanded tests for PDF generation helper, request model validation, authentication edge cases, cleanup errors, and route handling.
+### Changed
+- Added strict validation for `CreatePDFRequest` fields including title length, content sanitization, CSS restrictions, and normalized output filenames.
