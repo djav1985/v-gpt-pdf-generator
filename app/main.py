@@ -107,11 +107,10 @@ def custom_openapi() -> dict:
     security_scheme = (
         openapi_schema.get("components", {})
         .get("securitySchemes", {})
-        .get("HTTPBearer", {})
+        .get("APIKeyHeader", {})
     )
     if security_scheme:
-        security_scheme["description"] = "Provide the API key as a Bearer token"
-        security_scheme["bearerFormat"] = "API Key"
+        security_scheme["description"] = "Provide the API key in the X-API-Key header"
     openapi_schema["openapi"] = "3.1.0"
     app.openapi_schema = openapi_schema
     return app.openapi_schema

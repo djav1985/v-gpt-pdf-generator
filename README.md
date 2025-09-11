@@ -175,7 +175,7 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
    ```bash
    curl -X POST "$BASE_URL/" \\
      -H "Content-Type: application/json" \\
-     -H "Authorization: Bearer $API_KEY" \\ # optional
+     -H "X-API-Key: $API_KEY" \\ # optional
      -d '{
        "pdf_title": "Example",
        "body_content": "<p>Hello</p>",

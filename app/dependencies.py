@@ -9,7 +9,7 @@ from typing import Optional
 
 from weasyprint import HTML
 from fastapi import Security, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import APIKeyHeader
 from .config import settings
 
 from pygments import highlight
@@ -151,14 +151,15 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         )
 
 
-def get_api_key(
-    credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
-) -> str:
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def get_api_key(api_key: str = Security(api_key_header)) -> str:
     """
-    Validate the provided API key from the Authorization header.
+    Validate the provided API key from the ``X-API-Key`` header.
 
     Args:
-        credentials (HTTPAuthorizationCredentials): The HTTP credentials from the request header.
+        api_key (str): The API key extracted from the request header.
 
     Returns:
         str: The API key if valid.
@@ -166,14 +167,14 @@ def get_api_key(
     Raises:
         HTTPException: If the API key is missing or invalid.
     """
-    if settings.API_KEY and credentials.credentials != settings.API_KEY:
+    if settings.API_KEY and api_key != settings.API_KEY:
         raise HTTPException(
             status_code=403,
             detail={
                 "status": 403,
                 "code": "invalid_api_key",
                 "message": "Invalid or missing API key",
-                "details": "Provide a valid API key in the Authorization header",
+                "details": "Provide a valid API key in the X-API-Key header",
             },
         )
-    return credentials.credentials
+    return api_key
