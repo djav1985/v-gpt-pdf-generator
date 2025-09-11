@@ -36,4 +36,5 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - Narrowed exception handling with explicit logging.
 - Documented create route with type hints and docstring.
 ### Fixed
+- Improved cleanup error test to simulate `Path.iterdir` failure.
 - Create endpoint now returns a relative download URL when `BASE_URL` is unset instead of failing.
