@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import HTTPException
@@ -44,7 +44,7 @@ def test_get_api_key_no_env(monkeypatch):
 async def test_cleanup_downloads_folder(tmp_path):
     old_file = tmp_path / "old.txt"
     old_file.write_text("old")
-    old_time = datetime.now() - timedelta(days=8)
+    old_time = datetime.now(tz=timezone.utc) - timedelta(days=8)
     os.utime(old_file, (old_time.timestamp(), old_time.timestamp()))
 
     new_file = tmp_path / "new.txt"
