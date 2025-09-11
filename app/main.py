@@ -47,7 +47,7 @@ app.include_router(pdf_router)
 
 
 @app.get(
-    "/downloads/{filename}",
+    "/downloads/{filename:path}",
     response_class=FileResponse,
     tags=["PDF"],
     summary="Download PDF",
@@ -75,8 +75,11 @@ app.include_router(pdf_router)
 def download_pdf(
     filename: str = Path(..., description="Name of the PDF file to download", example="example.pdf")
 ):
-    file_path = f"/app/downloads/{filename}"
-    if not os.path.isfile(file_path):
+    downloads_dir = FilePath("/app/downloads").resolve()
+    file_path = FilePath("/app/downloads", filename).resolve()
+    if not str(file_path).startswith(str(downloads_dir)):
+        raise HTTPException(status_code=400)
+    if not file_path.is_file():
         raise HTTPException(
             status_code=404,
             detail={

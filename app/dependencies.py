@@ -61,31 +61,26 @@ async def generate_pdf(
 
         # Process body_content with Pygments if contains_code is True
         if contains_code:
-            # Use regex to find all <pre><code> blocks
-            code_blocks = re.findall(
-                r'<pre><code class="language-(\\w+)">(.+?)</code></pre>',
-                body_content,
-                re.DOTALL,
+            # Use regex to find all <pre><code> blocks, case-insensitively
+            pattern = re.compile(
+                r'<pre\s*>\s*<code\s+class="language-(\w+)"\s*>(.+?)</code\s*>\s*</pre\s*>',
+                re.DOTALL | re.IGNORECASE,
             )
 
             formatter: HtmlFormatter = HtmlFormatter(style="default")
             pygments_css: str = formatter.get_style_defs(".highlight")
             combined_css += f"<style>{pygments_css}</style>"
 
-            for language, code in code_blocks:
+            def repl(match: re.Match) -> str:
+                language = match.group(1)
+                code = match.group(2)
                 try:
                     lexer = get_lexer_by_name(language)
                 except Exception:
-                    lexer = guess_lexer(code)  # Fallback to guess if the language is not recognized
+                    lexer = guess_lexer(code)  # Fallback if the language is not recognized
+                return highlight(code, lexer, formatter)
 
-                # Highlight the code block
-                highlighted_code: str = highlight(code, lexer, formatter)
-
-                # Replace original code block with highlighted HTML
-                body_content = body_content.replace(
-                    f'<pre><code class="language-{language}">{code}</code></pre>',
-                    highlighted_code,
-                )
+            body_content = pattern.sub(repl, body_content)
 
         # Initialize the HTML template with combined_css
         html_template: str = f"""
