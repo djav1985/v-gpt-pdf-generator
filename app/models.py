@@ -1,7 +1,7 @@
 import re
 from typing import Optional
 
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
 # Request model for creating a PDF
@@ -13,7 +13,7 @@ class CreatePDFRequest(BaseModel):
             "<h1>$title</h1> in the body and the <title>$title</title>."
         ),
         min_length=1,
-        max_length=200
+        max_length=200,
     )
     contains_code: bool = Field(
         False,
@@ -22,8 +22,8 @@ class CreatePDFRequest(BaseModel):
             "If set to true, the content may contain pre-formatted code blocks "
             "using <pre><code> tags. To include code blocks, wrap snippets in "
             "<pre><code>...</code></pre> tags and specify the language using a "
-            "class attribute, e.g., <code class=\"language-python\"></code>."
-        )
+            'class attribute, e.g., <code class="language-python"></code>.'
+        ),
     )
     body_content: str = Field(
         ...,
@@ -37,7 +37,7 @@ class CreatePDFRequest(BaseModel):
             "and IDs within the HTML elements and use the 'css_content' "
             "parameter to apply custom styles. Images should use absolute URLs. "
             "Scripts and embedded forms are not supported."
-        )
+        ),
     )
     css_content: Optional[str] = Field(
         None,
@@ -45,7 +45,7 @@ class CreatePDFRequest(BaseModel):
             "Optional CSS styles to format the 'body_content'. Supports "
             "standard selectors and properties but disallows '@import', "
             "'url()' functions, and '<script>' tags."
-        )
+        ),
     )
     output_filename: Optional[str] = Field(
         None,
@@ -53,16 +53,16 @@ class CreatePDFRequest(BaseModel):
             "Optional filename for the generated PDF. Use lowercase letters, "
             "numbers, hyphens, or underscores. Path separators are not allowed "
             "and the '.pdf' extension is appended automatically."
-        )
+        ),
     )
 
-    @validator("pdf_title", pre=True)
+    @field_validator("pdf_title", mode="before")
     def strip_title(cls, value: str) -> str:
         if isinstance(value, str):
             value = value.strip()
         return value
 
-    @validator("body_content")
+    @field_validator("body_content")
     def validate_body(cls, value: str) -> str:
         if not value or not value.strip():
             raise ValueError("body_content cannot be empty")
@@ -72,7 +72,7 @@ class CreatePDFRequest(BaseModel):
                 raise ValueError("body_content contains prohibited tags")
         return value
 
-    @validator("css_content")
+    @field_validator("css_content")
     def validate_css(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
@@ -81,7 +81,7 @@ class CreatePDFRequest(BaseModel):
             raise ValueError("css_content contains disallowed constructs")
         return value
 
-    @validator("output_filename", pre=True)
+    @field_validator("output_filename", mode="before")
     def sanitize_filename(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
@@ -101,39 +101,27 @@ class CreatePDFRequest(BaseModel):
 
 # Response model for errors
 class ErrorResponse(BaseModel):
-    status: int = Field(
-        ...,
-        description="HTTP status code of the error"
-    )
-    code: str = Field(
-        ...,
-        description="Application-specific error identifier"
-    )
-    message: str = Field(
-        ...,
-        description="Human-readable summary of the error"
-    )
+    status: int = Field(..., description="HTTP status code of the error")
+    code: str = Field(..., description="Application-specific error identifier")
+    message: str = Field(..., description="Human-readable summary of the error")
     details: Optional[str] = Field(
-        None,
-        description="Additional information that may help resolve the error"
+        None, description="Additional information that may help resolve the error"
     )
 
 
 # Response model for PDF creation
 class CreatePDFResponse(BaseModel):
     results: str = Field(
-        ...,
-        description="Outcome message for the PDF generation request"
+        ..., description="Outcome message for the PDF generation request"
     )
     url: HttpUrl = Field(
-        ...,
-        description="URL where the generated PDF can be downloaded"
+        ..., description="URL where the generated PDF can be downloaded"
     )
 
     class Config:
         schema_extra = {
             "example": {
                 "results": "PDF generation is complete. You can download it from the following URL:",
-                "url": "https://example.com/downloads/example-pdf.pdf"
+                "url": "https://example.com/downloads/example-pdf.pdf",
             }
         }
