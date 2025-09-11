@@ -72,7 +72,7 @@ app.include_router(pdf_router)
         }
     },
 )
-async def download_pdf(
+def download_pdf(
     filename: str = Path(..., description="Name of the PDF file to download", example="example.pdf")
 ):
     file_path = f"/app/downloads/{filename}"
@@ -117,7 +117,7 @@ app.openapi = custom_openapi
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
+def http_exception_handler(request: Request, exc: HTTPException):
     if isinstance(exc.detail, dict):
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})

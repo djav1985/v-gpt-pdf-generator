@@ -102,9 +102,8 @@ async def generate_pdf(
         """
 
         # Asynchronously generate the PDF from the HTML string
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(
-            None, lambda: HTML(string=html_template).write_pdf(target=output_path)
+        await asyncio.to_thread(
+            HTML(string=html_template).write_pdf, target=output_path
         )
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
@@ -119,6 +118,18 @@ async def generate_pdf(
         )
 
 
+def _cleanup_folder(folder_path: str) -> None:
+    """Remove files older than 7 days from the downloads folder."""
+    now: datetime = datetime.now()
+    age_limit: datetime = now - timedelta(days=7)
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path):
+            file_mod_time: datetime = datetime.fromtimestamp(os.path.getmtime(file_path))
+            if file_mod_time < age_limit:
+                os.remove(file_path)
+
+
 async def cleanup_downloads_folder(folder_path: str) -> None:
     """
     Remove files older than 7 days from the specified downloads folder.
@@ -130,17 +141,7 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         HTTPException: If cleanup fails.
     """
     try:
-        now: datetime = datetime.now()
-        age_limit: datetime = now - timedelta(days=7)
-        filenames = await asyncio.to_thread(os.listdir, folder_path)
-        for filename in filenames:
-            file_path = os.path.join(folder_path, filename)
-            if await asyncio.to_thread(os.path.isfile, file_path):
-                file_mod_time: datetime = datetime.fromtimestamp(
-                    await asyncio.to_thread(os.path.getmtime, file_path)
-                )
-                if file_mod_time < age_limit:
-                    await asyncio.to_thread(os.remove, file_path)
+        await asyncio.to_thread(_cleanup_folder, folder_path)
     except Exception as e:
         print(f"Cleanup error: {str(e)}")
         raise HTTPException(
@@ -154,7 +155,7 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
         )
 
 
-async def get_api_key(
+def get_api_key(
     credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())
 ) -> str:
     """

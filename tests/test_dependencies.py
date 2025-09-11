@@ -8,37 +8,34 @@ from fastapi.security import HTTPAuthorizationCredentials
 from app.dependencies import cleanup_downloads_folder, get_api_key
 
 
-@pytest.mark.asyncio
-async def test_get_api_key_valid(monkeypatch):
+def test_get_api_key_valid(monkeypatch):
     monkeypatch.setenv("API_KEY", "secret")
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="secret",
     )
-    result = await get_api_key(credentials)
+    result = get_api_key(credentials)
     assert result == "secret"
 
 
-@pytest.mark.asyncio
-async def test_get_api_key_invalid(monkeypatch):
+def test_get_api_key_invalid(monkeypatch):
     monkeypatch.setenv("API_KEY", "secret")
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="wrong",
     )
     with pytest.raises(HTTPException) as exc:
-        await get_api_key(credentials)
+        get_api_key(credentials)
     assert exc.value.status_code == 403
 
 
-@pytest.mark.asyncio
-async def test_get_api_key_no_env(monkeypatch):
+def test_get_api_key_no_env(monkeypatch):
     monkeypatch.delenv("API_KEY", raising=False)
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials="provided",
     )
-    result = await get_api_key(credentials)
+    result = get_api_key(credentials)
     assert result == "provided"
 
 
