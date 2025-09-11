@@ -49,8 +49,8 @@ pdf_router = APIRouter()
                     "application/json": {
                         "example": {
                             "results": (
-                                "PDF generation is complete. You can download it from the "
-                                "following URL:"
+                                "PDF generation is complete. "
+                                "You can download it from the following URL:"
                             ),
                             "url": "https://example.com/downloads/example-pdf.pdf",
                         }
@@ -64,7 +64,9 @@ pdf_router = APIRouter()
                             "status": 403,
                             "code": "invalid_api_key",
                             "message": "Invalid or missing API key",
-                            "details": "Provide a valid API key in the X-API-Key header",
+                            "details": (
+                                "Provide a valid API key in the X-API-Key header"
+                            ),
                         }
                     }
                 }
@@ -116,7 +118,8 @@ async def create_pdf(request: CreatePDFRequest) -> CreatePDFResponse:
         )
 
         return CreatePDFResponse(
-            results="PDF generation is complete. You can download it from the following URL:",
+            results=("PDF generation is complete. "
+                     "You can download it from the following URL:"),
             url=f"{settings.BASE_URL}{settings.ROOT_PATH}/downloads/{filename}",
         )
     except HTTPException:

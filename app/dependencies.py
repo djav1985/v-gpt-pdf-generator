@@ -44,17 +44,23 @@ async def generate_pdf(
         body_content (str): HTML content for the PDF body.
         css_content (Optional[str]): Optional CSS styles for the PDF.
         output_path (Path): Path to save the generated PDF file.
-        contains_code (bool): Whether the body_content contains code blocks to highlight.
+        contains_code (bool): Whether the body_content contains code
+            blocks to highlight.
 
     Raises:
         HTTPException: If PDF generation fails.
     """
     try:
-        # Define default CSS as a string using an f-string for formatting (minified version)
+        # Define default CSS as a string using an f-string for formatting
+        # (minified version)
         default_css: str = f"""
-        @page{{size:Letter;margin:0.5in;@bottom-left{{content:"{pdf_title}";font-size:10px;color:#555;}}@bottom-right{{content:"Page " counter(page) " of " counter(pages);font-size:10px;color:#555;}}}}
+        @page{{size:Letter;margin:0.5in;""" \
+            f"""@bottom-left{{content:"{pdf_title}";font-size:10px;color:#555;}}""" \
+            f"""@bottom-right{{content:"Page " counter(page) " of " """ \
+            f"""counter(pages);font-size:10px;color:#555;}}}}
         body{{font-family:'Arial',sans-serif;font-size:12px;line-height:1.5;color:#333;}}
-        h1{{color:#66cc33;margin-bottom:40px;border-bottom:2px solid #66cc33;padding-bottom:10px;}}
+        h1{{color:#66cc33;margin-bottom:40px;border-bottom:2px solid """ \
+            f"""#66cc33;padding-bottom:10px;}}
         h2,h3,h4,h5,h6{{color:#4b5161;margin-top:20px;}}
         p{{margin:1em 0;}}
         a{{color:#0366d6;text-decoration:none;}}
@@ -76,7 +82,8 @@ async def generate_pdf(
         if contains_code:
             # Use regex to find all <pre><code> blocks, case-insensitively
             pattern = re.compile(
-                r'<pre\s*>\s*<code\s+class="language-(\w+)"\s*>(.+?)</code\s*>\s*</pre\s*>',
+                r'<pre\s*>\s*<code\s+class="language-(\w+)"\s*>'
+                r'(.+?)</code\s*>\s*</pre\s*>',
                 re.DOTALL | re.IGNORECASE,
             )
 
@@ -90,7 +97,8 @@ async def generate_pdf(
                 try:
                     lexer = get_lexer_by_name(language)
                 except ClassNotFound:
-                    lexer = guess_lexer(code)  # Fallback if the language is not recognized
+                    # Fallback if the language is not recognized
+                    lexer = guess_lexer(code)
                 return highlight(code, lexer, formatter)
 
             body_content = pattern.sub(repl, body_content)

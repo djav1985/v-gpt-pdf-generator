@@ -1,9 +1,3 @@
-import re
-from typing import Optional
-
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-
-
 """Common data models and request/response schemas."""
 
 import re
@@ -121,19 +115,6 @@ class CreatePDFRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-# Response model for errors
-class ErrorResponse(BaseModel):
-    """Standard error response format across all apps."""
-    status: int = Field(..., description="HTTP status code of the error")
-    code: str = Field(..., description="Application-specific error identifier")
-    message: str = Field(..., description="Human-readable summary of the error")
-    details: Optional[str] = Field(
-        None, description="Additional information that may help resolve the error"
-    )
-
-    model_config = ConfigDict(extra="forbid")
-
-
 # Response model for PDF creation
 class CreatePDFResponse(BaseModel):
     results: str = Field(
@@ -156,7 +137,8 @@ class CreatePDFResponse(BaseModel):
         extra="forbid",
         json_schema_extra={
             "example": {
-                "results": "PDF generation is complete. You can download it from the following URL:",
+                "results": ("PDF generation is complete. "
+                            "You can download it from the following URL:"),
                 "url": "https://example.com/downloads/example-pdf.pdf",
             }
         }

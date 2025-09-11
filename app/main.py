@@ -17,6 +17,7 @@ tags_metadata = [
     {"name": "PDF", "description": "Operations for creating PDF documents."}
 ]
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     downloads_path = FilePath("/app/downloads")
@@ -76,7 +77,11 @@ app.include_router(pdf_router)
     },
 )
 def download_pdf(
-    filename: str = Path(..., description="Name of the PDF file to download", example="example.pdf")
+    filename: str = Path(
+        ...,
+        description="Name of the PDF file to download",
+        example="example.pdf"
+    )
 ) -> FileResponse:
     downloads_dir = FilePath("/app/downloads").resolve()
     file_path = FilePath("/app/downloads", filename).resolve()
