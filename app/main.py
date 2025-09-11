@@ -17,12 +17,13 @@ app = FastAPI(
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
-    root_path=os.getenv("ROOT_PATH", ""),
+    root_path=os.getenv("ROOT_PATH", "/"),
     root_path_in_servers=False,
     servers=[
-        {"url": "http://localhost:8000", "description": "Development server"},
-        {"url": "https://staging.example.com", "description": "Staging server"},
-        {"url": "https://api.example.com", "description": "Production server"},
+        {
+            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}",
+            "description": "Base API server",
+        }
     ],
     contact={
         "name": "Project Support",

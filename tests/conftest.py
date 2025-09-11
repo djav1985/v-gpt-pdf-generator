@@ -1,3 +1,4 @@
+import os
 import sys
 import types
 from pathlib import Path
@@ -20,3 +21,5 @@ class HTML:
 weasyprint_stub.HTML = HTML
 
 sys.modules.setdefault("weasyprint", weasyprint_stub)
+
+os.environ.setdefault("ROOT_PATH", "")

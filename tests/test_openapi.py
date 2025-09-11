@@ -1,3 +1,5 @@
+import os
+
 from app.main import app
 
 
@@ -5,7 +7,12 @@ def test_openapi_metadata():
     schema = app.openapi()
 
     assert schema["openapi"] == "3.1.0"
-    assert len(schema["servers"]) == 3
+    assert schema["servers"] == [
+        {
+            "url": f"{os.getenv('BASE_URL', '')}{os.getenv('ROOT_PATH', '/')}",
+            "description": "Base API server",
+        }
+    ]
 
     # Security scheme metadata
     http_bearer = schema["components"]["securitySchemes"]["HTTPBearer"]
