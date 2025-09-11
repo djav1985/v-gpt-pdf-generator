@@ -104,7 +104,34 @@ class CreatePDFRequest(BaseModel):
         return f"{value}.pdf"
 
 
+# Response model for errors
+class ErrorResponse(BaseModel):
+    status: int = Field(
+        ..., description="HTTP status code of the error", example=403
+    )
+    code: str = Field(
+        ..., description="Application-specific error identifier", example="invalid_api_key"
+    )
+    message: str = Field(
+        ..., description="Human-readable summary of the error", example="Invalid or missing API key"
+    )
+    details: Optional[str] = Field(
+        None,
+        description="Additional information that may help resolve the error",
+        example="Provide a valid API key in the Authorization header",
+    )
+
+
 # Response model for PDF creation
 class CreatePDFResponse(BaseModel):
-    results: str
-    url: HttpUrl
+    results: str = Field(
+        ...,
+        description="Outcome message for the PDF generation request",
+        example="PDF generation is complete. You can download it from the following URL:",
+    )
+    url: HttpUrl = Field(
+        ...,
+        description="URL where the generated PDF can be downloaded",
+        json_schema_extra={"format": "uri"},
+        example="https://example.com/downloads/example-pdf.pdf",
+    )

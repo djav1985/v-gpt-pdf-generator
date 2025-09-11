@@ -108,7 +108,15 @@ async def generate_pdf(
         )
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "pdf_generation_error",
+                "message": "Error generating PDF",
+                "details": str(e),
+            },
+        )
 
 
 async def cleanup_downloads_folder(folder_path: str) -> None:
@@ -135,7 +143,15 @@ async def cleanup_downloads_folder(folder_path: str) -> None:
                     await asyncio.to_thread(os.remove, file_path)
     except Exception as e:
         print(f"Cleanup error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Cleanup error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "cleanup_error",
+                "message": "Cleanup error",
+                "details": str(e),
+            },
+        )
 
 
 async def get_api_key(
@@ -154,5 +170,13 @@ async def get_api_key(
         HTTPException: If the API key is missing or invalid.
     """
     if os.getenv("API_KEY") and credentials.credentials != os.getenv("API_KEY"):
-        raise HTTPException(status_code=403, detail="Invalid or missing API key")
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "status": 403,
+                "code": "invalid_api_key",
+                "message": "Invalid or missing API key",
+                "details": "Provide a valid API key in the Authorization header",
+            },
+        )
     return credentials.credentials

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..models import CreatePDFRequest, CreatePDFResponse
+from ..models import CreatePDFRequest, CreatePDFResponse, ErrorResponse
 from ..dependencies import generate_pdf, get_api_key
 
 pdf_router = APIRouter()
@@ -21,8 +21,8 @@ pdf_router = APIRouter()
     tags=["PDF"],
     response_model=CreatePDFResponse,
     responses={
-        403: {"description": "Invalid or missing API key"},
-        500: {"description": "Internal Server Error"},
+        403: {"description": "Invalid or missing API key", "model": ErrorResponse},
+        500: {"description": "Internal Server Error", "model": ErrorResponse},
     },
     dependencies=[Depends(get_api_key)],
     openapi_extra={
@@ -52,7 +52,31 @@ pdf_router = APIRouter()
                         }
                     }
                 }
-            }
+            },
+            "403": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "status": 403,
+                            "code": "invalid_api_key",
+                            "message": "Invalid or missing API key",
+                            "details": "Provide a valid API key in the Authorization header",
+                        }
+                    }
+                }
+            },
+            "500": {
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "status": 500,
+                            "code": "internal_server_error",
+                            "message": "Internal Server Error",
+                            "details": "An unexpected error occurred",
+                        }
+                    }
+                }
+            },
         },
     },
 )
@@ -82,4 +106,12 @@ async def create_pdf(request: CreatePDFRequest):
         }
     except Exception as e:
         print(f"An error occurred: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "internal_server_error",
+                "message": "Internal Server Error",
+                "details": str(e),
+            },
+        )
