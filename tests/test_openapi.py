@@ -14,9 +14,10 @@ def test_openapi_metadata():
     ]
 
     # Security scheme metadata
-    http_bearer = schema["components"]["securitySchemes"]["HTTPBearer"]
-    assert http_bearer["description"] == "Provide the API key as a Bearer token"
-    assert http_bearer["bearerFormat"] == "API Key"
+    api_key_header = schema["components"]["securitySchemes"]["APIKeyHeader"]
+    assert api_key_header["description"] == "Provide the API key in the X-API-Key header"
+    assert api_key_header["name"] == "X-API-Key"
+    assert api_key_header["in"] == "header"
 
     # URL format in CreatePDFResponse
     url_schema = schema["components"]["schemas"]["CreatePDFResponse"]["properties"]["url"]

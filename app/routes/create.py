@@ -60,7 +60,7 @@ pdf_router = APIRouter()
                             "status": 403,
                             "code": "invalid_api_key",
                             "message": "Invalid or missing API key",
-                            "details": "Provide a valid API key in the Authorization header",
+                            "details": "Provide a valid API key in the X-API-Key header",
                         }
                     }
                 }

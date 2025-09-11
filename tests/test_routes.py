@@ -44,7 +44,7 @@ def test_create_pdf_endpoint_success(monkeypatch, tmp_path):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
 
     assert response.status_code == 200
@@ -79,7 +79,7 @@ def test_create_pdf_endpoint_relative_url(monkeypatch, tmp_path):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
 
     assert response.status_code == 200
@@ -102,14 +102,14 @@ def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer wrong"},
+        headers={"X-API-Key": "wrong"},
     )
     assert response.status_code == 403
     assert response.json() == {
         "status": 403,
         "code": "invalid_api_key",
         "message": "Invalid or missing API key",
-        "details": "Provide a valid API key in the Authorization header",
+        "details": "Provide a valid API key in the X-API-Key header",
     }
 
 
@@ -140,7 +140,7 @@ def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -178,7 +178,7 @@ def test_create_pdf_endpoint_with_uppercase_tags(monkeypatch, tmp_path):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -206,7 +206,7 @@ def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
     assert response.status_code == 500
     assert response.json() == {
@@ -229,7 +229,7 @@ def test_create_pdf_endpoint_rejects_extra_fields(monkeypatch):
     response = client.post(
         "/",
         json=payload,
-        headers={"Authorization": "Bearer secret"},
+        headers={"X-API-Key": "secret"},
     )
     assert response.status_code == 422
 

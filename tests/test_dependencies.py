@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 import pytest
 from fastapi import HTTPException
-from fastapi.security import HTTPAuthorizationCredentials
 
 import app.config as config
 from app.dependencies import cleanup_downloads_folder, get_api_key
@@ -11,32 +10,20 @@ from app.dependencies import cleanup_downloads_folder, get_api_key
 
 def test_get_api_key_valid(monkeypatch):
     monkeypatch.setattr(config.settings, "API_KEY", "secret")
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="secret",
-    )
-    result = get_api_key(credentials)
+    result = get_api_key("secret")
     assert result == "secret"
 
 
 def test_get_api_key_invalid(monkeypatch):
     monkeypatch.setattr(config.settings, "API_KEY", "secret")
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="wrong",
-    )
     with pytest.raises(HTTPException) as exc:
-        get_api_key(credentials)
+        get_api_key("wrong")
     assert exc.value.status_code == 403
 
 
 def test_get_api_key_no_env(monkeypatch):
     monkeypatch.setattr(config.settings, "API_KEY", None)
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="provided",
-    )
-    result = get_api_key(credentials)
+    result = get_api_key("provided")
     assert result == "provided"
 
 
