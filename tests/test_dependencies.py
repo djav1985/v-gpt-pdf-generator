@@ -45,10 +45,10 @@ async def test_cleanup_downloads_folder(tmp_path):
 
 @pytest.mark.asyncio
 async def test_cleanup_downloads_folder_error(monkeypatch, tmp_path):
-    def fail_listdir(path):
+    def fail_iterdir(self):
         raise OSError("boom")
 
-    monkeypatch.setattr(os, "listdir", fail_listdir)
+    monkeypatch.setattr("app.dependencies.Path.iterdir", fail_iterdir)
     with pytest.raises(HTTPException) as exc:
         await cleanup_downloads_folder(str(tmp_path))
     assert exc.value.status_code == 500
