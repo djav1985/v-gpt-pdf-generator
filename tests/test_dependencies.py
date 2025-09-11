@@ -32,6 +32,17 @@ async def test_get_api_key_invalid(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_get_api_key_no_env(monkeypatch):
+    monkeypatch.delenv("API_KEY", raising=False)
+    credentials = HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials="provided",
+    )
+    result = await get_api_key(credentials)
+    assert result == "provided"
+
+
+@pytest.mark.asyncio
 async def test_cleanup_downloads_folder(tmp_path):
     old_file = tmp_path / "old.txt"
     old_file.write_text("old")
@@ -45,3 +56,14 @@ async def test_cleanup_downloads_folder(tmp_path):
 
     assert not old_file.exists()
     assert new_file.exists()
+
+
+@pytest.mark.asyncio
+async def test_cleanup_downloads_folder_error(monkeypatch, tmp_path):
+    def fail_listdir(path):
+        raise OSError("boom")
+
+    monkeypatch.setattr(os, "listdir", fail_listdir)
+    with pytest.raises(HTTPException) as exc:
+        await cleanup_downloads_folder(str(tmp_path))
+    assert exc.value.status_code == 500

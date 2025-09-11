@@ -53,7 +53,7 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
 | 📄 | **Documentation** | Documentation is comprehensive, detailing setup with `requirements.txt`, `Dockerfile`, and `docker-compose.yml`. In-line comments and structured organization guide users through the core functionalities. |
 | 🔌 | **Integrations**  | Essential integrations include aiohttp for asynchronous HTTP requests, FastAPI for building APIs, and WeasyPrint for PDF generation. These components facilitate seamless data handling and PDF services. |
 | 🧩 | **Modularity**    | The codebase is highly modular, with separate files for routing, models, and dependencies. This structure promotes reusability and easier testing, allowing developers to update components independently. |
-| 🧪 | **Testing**       | No automated test suite is currently included. |
+| 🧪 | **Testing**       | Automated test suite covers PDF generation, request validation, authentication, cleanup, and routes. |
 | ⚡️  | **Performance**   | Optimized for high efficiency, the application handles multiple requests concurrently with FastAPI, minimizing response times and resource usage through asynchronous programming. |
 | 🛡️ | **Security**      | Employs API key validation and secure access measures. Techniques like input validation and error handling safeguard against common vulnerabilities during PDF generation. |
 | 📦 | **Dependencies**  | Key dependencies include FastAPI, WeasyPrint, Pydantic for data validation, aiofiles for file handling, and uvicorn for running the application, ensuring robust functionality and performance. |
