@@ -186,6 +186,7 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
    ```
 
    The response includes a `url` to download the generated PDF from `/downloads`.
+   If `BASE_URL` is not set, this will be a relative path.
 ---
 
 ## 🛠 Project Changelog

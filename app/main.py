@@ -1,7 +1,7 @@
 # main.py
 from contextlib import asynccontextmanager
 from pathlib import Path as FilePath
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Path, Request
 from fastapi.responses import FileResponse, JSONResponse
