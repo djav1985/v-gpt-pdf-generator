@@ -15,15 +15,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-ARG GITEA_REPOSITORY
-ARG GITEA_REF_NAME
-
-# Create venv and install deps (prefer cache, fallback to PyPI)
-RUN --mount=type=cache,target=/opt/hostedtoolcache/pip \
-    python -m venv /app/venv && \
+# Install dependencies into venv – build cache will reuse this layer
+RUN python -m venv /app/venv && \
     . /app/venv/bin/activate && \
-    PIP_CACHE_DIR=/opt/hostedtoolcache/${GITEA_REPOSITORY}-${GITEA_REF_NAME}/pip \
-    pip install --no-index --find-links=$PIP_CACHE_DIR -r requirements.txt || \
     pip install -r requirements.txt
 
 # ---- Final stage ----

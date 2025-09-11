@@ -35,6 +35,14 @@ jobs:
             type=raw,value=dev,enable=${{ gitea.ref == 'refs/heads/dev' }}
             type=sha,priority=100,enable=${{ gitea.event_name == 'push' }}
 
+      - name: Cache Docker build layers
+        uses: actions/cache@v3
+        with:
+          path: /opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build
+          key: build-${{ runner.os }}-${{ gitea.sha }}
+          restore-keys: |
+            build-${{ runner.os }}-
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -43,13 +51,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GITEA_REPOSITORY=${{ gitea.repository }}
-            GITEA_REF_NAME=${{ gitea.ref_name }}
-          cache-from: type=local,src=/opt/hostedtoolcache/${{ gitea.repository }}-${{ gitea.ref_name }}/build
-          cache-to: type=local,dest=/opt/hostedtoolcache/${{ gitea.repository }}-${{ gitea.ref_name }}/build-new,mode=max
+          cache-from: type=local,src=/opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build
+          cache-to: type=local,dest=/opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build-new,mode=max
 
       - name: Rotate build cache
         run: |
-          rm -rf /opt/hostedtoolcache/${{ gitea.repository }}-${{ gitea.ref_name }}/build
-          mv /opt/hostedtoolcache/${{ gitea.repository }}-${{ gitea.ref_name }}/build-new /opt/hostedtoolcache/${{ gitea.repository }}-${{ gitea.ref_name }}/build
+          rm -rf /opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build
+          mv /opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build-new /opt/hostedtoolcache/${{ gitea.repository }}/${{ gitea.ref_name }}/build
