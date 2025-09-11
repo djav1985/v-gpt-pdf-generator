@@ -1,3 +1,5 @@
+"""Application dependencies and utility functions."""
+
 # Importing required libraries and modules
 import asyncio
 import logging

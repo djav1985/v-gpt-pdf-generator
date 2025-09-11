@@ -4,6 +4,26 @@ from typing import Optional
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
+"""Common data models and request/response schemas."""
+
+import re
+from typing import Optional
+
+from pydantic import BaseModel, Field, field_validator, ConfigDict
+
+
+class ErrorResponse(BaseModel):
+    """Standard error response format across all apps."""
+    status: int = Field(..., description="HTTP status code of the error")
+    code: str = Field(..., description="Application-specific error identifier")
+    message: str = Field(..., description="Human-readable summary of the error")
+    details: Optional[str] = Field(
+        None, description="Additional information that may help resolve the error"
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
 # Request model for creating a PDF
 class CreatePDFRequest(BaseModel):
     pdf_title: str = Field(
@@ -103,6 +123,7 @@ class CreatePDFRequest(BaseModel):
 
 # Response model for errors
 class ErrorResponse(BaseModel):
+    """Standard error response format across all apps."""
     status: int = Field(..., description="HTTP status code of the error")
     code: str = Field(..., description="Application-specific error identifier")
     message: str = Field(..., description="Human-readable summary of the error")

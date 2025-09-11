@@ -1,16 +1,17 @@
-# main.py
+"""Application entry point configuring routes and startup behavior."""
+
 from contextlib import asynccontextmanager
 from pathlib import Path as FilePath
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Path, Request
-from fastapi.responses import FileResponse, JSONResponse
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import FileResponse, JSONResponse
 
-from .routes.create import pdf_router
-from .models import ErrorResponse
-from .dependencies import cleanup_downloads_folder
 from .config import settings
+from .dependencies import cleanup_downloads_folder
+from .models import ErrorResponse
+from .routes.create import pdf_router
 
 tags_metadata = [
     {"name": "PDF", "description": "Operations for creating PDF documents."}
@@ -28,10 +29,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 # FastAPI application instance
 app = FastAPI(
-    lifespan=lifespan,
     title="PDF Generation API",
     version="0.1.0",
     description="A FastAPI application that generates PDFs from HTML and CSS content",
+    openapi_version="3.1.0",
     openapi_tags=tags_metadata,
     root_path=settings.ROOT_PATH,
     root_path_in_servers=False,
@@ -40,10 +41,11 @@ app = FastAPI(
             "url": f"{settings.BASE_URL}{settings.ROOT_PATH}",
             "description": "Base API server",
         }
-    ]
+    ],
+    lifespan=lifespan,
 )
 
-# Including Routers for different endpoints
+# Include routers
 app.include_router(pdf_router)
 
 
@@ -94,6 +96,7 @@ def download_pdf(
 
 
 def custom_openapi() -> dict:
+    """Generate and cache a custom OpenAPI schema for the app."""
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
@@ -104,13 +107,15 @@ def custom_openapi() -> dict:
         tags=tags_metadata,
         servers=app.servers,
     )
-    security_scheme = (
-        openapi_schema.get("components", {})
-        .get("securitySchemes", {})
-        .get("APIKeyHeader", {})
-    )
-    if security_scheme:
-        security_scheme["description"] = "Provide the API key in the X-API-Key header"
+    # Add API key authentication scheme
+    openapi_schema.setdefault("components", {}).setdefault(
+        "securitySchemes", {}
+    )["ApiKeyAuth"] = {
+        "type": "apiKey",
+        "name": "X-API-Key",
+        "in": "header",
+        "description": "Provide the API key via the X-API-Key header"
+    }
     openapi_schema["openapi"] = "3.1.0"
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -121,6 +126,7 @@ app.openapi = custom_openapi
 
 @app.exception_handler(HTTPException)
 def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """Return JSON errors for HTTPException instances."""
     if isinstance(exc.detail, dict):
         return JSONResponse(status_code=exc.status_code, content=exc.detail)
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
