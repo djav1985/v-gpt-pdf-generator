@@ -66,7 +66,12 @@ def test_create_pdf_endpoint_invalid_api_key(monkeypatch):
         headers={"Authorization": "Bearer wrong"},
     )
     assert response.status_code == 403
-    assert response.json() == {"detail": "Invalid or missing API key"}
+    assert response.json() == {
+        "status": 403,
+        "code": "invalid_api_key",
+        "message": "Invalid or missing API key",
+        "details": "Provide a valid API key in the Authorization header",
+    }
 
 
 def test_create_pdf_endpoint_with_code_and_filename(monkeypatch, tmp_path):
@@ -126,7 +131,12 @@ def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
         headers={"Authorization": "Bearer secret"},
     )
     assert response.status_code == 500
-    assert response.json() == {"detail": "boom"}
+    assert response.json() == {
+        "status": 500,
+        "code": "internal_server_error",
+        "message": "Internal Server Error",
+        "details": "boom",
+    }
 
 
 def test_download_route_serves_file():

@@ -5,6 +5,20 @@
     "description": "A FastAPI application that generates PDFs from HTML and CSS content",
     "version": "0.1.0"
   },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://staging.example.com",
+      "description": "Staging server"
+    },
+    {
+      "url": "https://api.example.com",
+      "description": "Production server"
+    }
+  ],
   "paths": {
     "/": {
       "post": {
@@ -54,7 +68,10 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 },
                 "example": {
-                  "detail": "Invalid or missing API key"
+                  "status": 403,
+                  "code": "invalid_api_key",
+                  "message": "Invalid or missing API key",
+                  "details": "Provide a valid API key in the Authorization header"
                 }
               }
             }
@@ -67,7 +84,10 @@
                   "$ref": "#/components/schemas/ErrorResponse"
                 },
                 "example": {
-                  "detail": "Internal Server Error"
+                  "status": 500,
+                  "code": "internal_server_error",
+                  "message": "Internal Server Error",
+                  "details": "An unexpected error occurred"
                 }
               }
             }
@@ -95,7 +115,8 @@
         "tags": [
           "PDF"
         ],
-        "summary": "Download Pdf",
+        "summary": "Download PDF",
+        "description": "Retrieve a previously generated PDF file by its filename.",
         "operationId": "download_pdf_downloads__filename__get",
         "parameters": [
           {
@@ -104,13 +125,32 @@
             "required": true,
             "schema": {
               "type": "string",
+              "description": "Name of the PDF file to download",
               "title": "Filename"
-            }
+            },
+            "description": "Name of the PDF file to download",
+            "example": "example.pdf"
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response"
+          },
+          "404": {
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "status": 404,
+                  "code": "file_not_found",
+                  "message": "File not found",
+                  "details": "Ensure the filename is correct"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -189,14 +229,17 @@
         "properties": {
           "results": {
             "type": "string",
-            "title": "Results"
+            "title": "Results",
+            "description": "Outcome message for the PDF generation request",
+            "example": "PDF generation is complete. You can download it from the following URL:"
           },
           "url": {
             "type": "string",
             "maxLength": 2083,
             "minLength": 1,
             "format": "uri",
-            "title": "Url"
+            "title": "Url",
+            "description": "URL where the generated PDF can be downloaded"
           }
         },
         "type": "object",
@@ -208,14 +251,43 @@
       },
       "ErrorResponse": {
         "properties": {
-          "detail": {
+          "status": {
+            "type": "integer",
+            "title": "Status",
+            "description": "HTTP status code of the error",
+            "example": 403
+          },
+          "code": {
             "type": "string",
-            "title": "Detail"
+            "title": "Code",
+            "description": "Application-specific error identifier",
+            "example": "invalid_api_key"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable summary of the error",
+            "example": "Invalid or missing API key"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Additional information that may help resolve the error",
+            "example": "Provide a valid API key in the Authorization header"
           }
         },
         "type": "object",
         "required": [
-          "detail"
+          "status",
+          "code",
+          "message"
         ],
         "title": "ErrorResponse"
       },

@@ -13,5 +13,7 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - `ErrorResponse` model for consistent error payloads.
 - Download endpoint for serving generated PDFs.
 - Custom OpenAPI generator with HTTP Bearer auth metadata and URI format for PDF URLs.
+- Expanded `ErrorResponse` fields and documented examples across endpoints.
+- Added descriptive download endpoint route and comprehensive OpenAPI metadata including server URLs.
 ### Changed
 - Added strict validation for `CreatePDFRequest` fields including title length, content sanitization, CSS restrictions, and normalized output filenames.

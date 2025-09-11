@@ -56,14 +56,24 @@ pdf_router = APIRouter()
             "403": {
                 "content": {
                     "application/json": {
-                        "example": {"detail": "Invalid or missing API key"}
+                        "example": {
+                            "status": 403,
+                            "code": "invalid_api_key",
+                            "message": "Invalid or missing API key",
+                            "details": "Provide a valid API key in the Authorization header",
+                        }
                     }
                 }
             },
             "500": {
                 "content": {
                     "application/json": {
-                        "example": {"detail": "Internal Server Error"}
+                        "example": {
+                            "status": 500,
+                            "code": "internal_server_error",
+                            "message": "Internal Server Error",
+                            "details": "An unexpected error occurred",
+                        }
                     }
                 }
             },
@@ -96,4 +106,12 @@ async def create_pdf(request: CreatePDFRequest):
         }
     except Exception as e:
         print(f"An error occurred: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": 500,
+                "code": "internal_server_error",
+                "message": "Internal Server Error",
+                "details": str(e),
+            },
+        )
