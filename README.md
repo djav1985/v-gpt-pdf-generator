@@ -126,8 +126,11 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
 1. **Download the `docker-compose.yml` file**:  
    Save the provided `docker-compose.yml` file to your project directory.
 
-2. **Edit Environment Variables**:  
-   Open the `docker-compose.yml` file and set the environment variables according to your setup:
+2. **Edit Environment Variables**:
+   The application reads `BASE_URL`, `ROOT_PATH`, and `API_KEY` using a Pydantic
+   `Settings` model located in `app/config.py`. These values can be supplied via
+   environment variables or a `.env` file. Open the `docker-compose.yml` file and
+   set the environment variables according to your setup:
 
    ```yaml
    environment:

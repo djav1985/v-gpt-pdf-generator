@@ -10,6 +10,7 @@ from typing import Optional
 from weasyprint import HTML
 from fastapi import Security, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from .config import settings
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
@@ -165,7 +166,7 @@ def get_api_key(
     Raises:
         HTTPException: If the API key is missing or invalid.
     """
-    if os.getenv("API_KEY") and credentials.credentials != os.getenv("API_KEY"):
+    if settings.API_KEY and credentials.credentials != settings.API_KEY:
         raise HTTPException(
             status_code=403,
             detail={

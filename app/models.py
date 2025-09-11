@@ -98,6 +98,8 @@ class CreatePDFRequest(BaseModel):
             raise ValueError("output_filename contains invalid characters")
         return f"{value}.pdf"
 
+    model_config = ConfigDict(extra="forbid")
+
 
 # Response model for errors
 class ErrorResponse(BaseModel):
@@ -107,6 +109,8 @@ class ErrorResponse(BaseModel):
     details: Optional[str] = Field(
         None, description="Additional information that may help resolve the error"
     )
+
+    model_config = ConfigDict(extra="forbid")
 
 
 # Response model for PDF creation
@@ -119,6 +123,7 @@ class CreatePDFResponse(BaseModel):
     )
 
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "example": {
                 "results": "PDF generation is complete. You can download it from the following URL:",
