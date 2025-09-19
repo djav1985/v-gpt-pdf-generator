@@ -15,7 +15,7 @@ def test_openapi_metadata():
 
     # Security scheme metadata
     api_key_header = schema["components"]["securitySchemes"]["APIKeyHeader"]
-    assert api_key_header["description"] == "Provide the API key in the X-API-Key header"
+    assert api_key_header["description"] == "Provide the API key via the X-API-Key header"
     assert api_key_header["name"] == "X-API-Key"
     assert api_key_header["in"] == "header"
 
@@ -24,7 +24,7 @@ def test_openapi_metadata():
     assert url_schema["format"] == "uri"
 
     # Error responses reference ErrorResponse and include examples
-    for status, code in [("403", "invalid_api_key"), ("500", "internal_server_error")]:
+    for status, code in [("403", "invalid_api_key"), ("500", "pdf_generation_error")]:
         resp = schema["paths"]["/"]["post"]["responses"][status]["content"]["application/json"]
         assert resp["schema"]["$ref"] == "#/components/schemas/ErrorResponse"
         assert resp["example"]["code"] == code

@@ -26,7 +26,7 @@ pdf_router = APIRouter()
     response_model=CreatePDFResponse,
     responses={
         403: {"description": "Invalid or missing API key", "model": ErrorResponse},
-        500: {"description": "Internal Server Error", "model": ErrorResponse},
+        500: {"description": "Error generating PDF", "model": ErrorResponse},
     },
     dependencies=[Depends(get_api_key)],
     openapi_extra={
@@ -76,9 +76,9 @@ pdf_router = APIRouter()
                     "application/json": {
                         "example": {
                             "status": 500,
-                            "code": "internal_server_error",
-                            "message": "Internal Server Error",
-                            "details": "An unexpected error occurred",
+                            "code": "pdf_generation_error",
+                            "message": "Error generating PDF",
+                            "details": "An unexpected error occurred while generating the PDF",
                         }
                     }
                 }
@@ -130,8 +130,8 @@ async def create_pdf(request: CreatePDFRequest) -> CreatePDFResponse:
             status_code=500,
             detail={
                 "status": 500,
-                "code": "internal_server_error",
-                "message": "Internal Server Error",
+                "code": "pdf_generation_error",
+                "message": "Error generating PDF",
                 "details": str(e),
             },
         ) from e
@@ -141,8 +141,8 @@ async def create_pdf(request: CreatePDFRequest) -> CreatePDFResponse:
             status_code=500,
             detail={
                 "status": 500,
-                "code": "internal_server_error",
-                "message": "Internal Server Error",
+                "code": "pdf_generation_error",
+                "message": "Error generating PDF",
                 "details": str(e),
             },
         ) from e

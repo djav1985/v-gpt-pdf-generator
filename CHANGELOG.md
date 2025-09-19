@@ -35,6 +35,9 @@ See [standard-version](https://github.com/conventional-changelog/standard-versio
 - Used timezone-aware datetimes and refactored downloads cleanup with `pathlib`.
 - Narrowed exception handling with explicit logging.
 - Documented create route with type hints and docstring.
+- Strengthened download route path validation with explicit containment checks.
+- Updated OpenAPI API key metadata and standardized 500-level PDF generation error codes.
+- Clarified README instructions for retrieving the OpenAPI schema from the running service.
 ### Fixed
 - Improved cleanup error test to simulate `Path.iterdir` failure.
 - Create endpoint now returns a relative download URL when `BASE_URL` is unset instead of failing.

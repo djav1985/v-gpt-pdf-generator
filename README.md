@@ -159,15 +159,19 @@ The project is a robust PDF Generation API built on FastAPI, designed to streaml
 
 #### From `docker-compose`
 
-1. **Access the OpenAPI Specifications**:  
+1. **Access the OpenAPI Specifications**:
    To get the OpenAPI specifications and integrate with your AI tool, navigate to:
 
    ```
    BASE_URL/openapi.json
    ```
 
-    Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
-   A generated copy of this specification is available in `openapi.json` at the project root.
+   Replace `BASE_URL` with the actual URL of your application (e.g., `https://api.servicesbyv.com/pdf/openapi.json`).
+   When running locally, fetch the schema directly from the running service, for example:
+
+   ```bash
+   curl http://localhost:8000/openapi.json
+   ```
 
 2. **Generate a PDF**:
    Send a POST request to the root endpoint with a JSON body:

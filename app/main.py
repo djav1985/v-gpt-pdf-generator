@@ -84,8 +84,10 @@ def download_pdf(
     )
 ) -> FileResponse:
     downloads_dir = FilePath("/app/downloads").resolve()
-    file_path = FilePath("/app/downloads", filename).resolve()
-    if not str(file_path).startswith(str(downloads_dir)):
+    file_path = (downloads_dir / filename).resolve()
+    try:
+        file_path.relative_to(downloads_dir)
+    except ValueError:
         raise HTTPException(status_code=400)
     if not file_path.is_file():
         raise HTTPException(
@@ -112,15 +114,16 @@ def custom_openapi() -> dict:
         tags=tags_metadata,
         servers=app.servers,
     )
-    # Add API key authentication scheme
-    openapi_schema.setdefault("components", {}).setdefault(
-        "securitySchemes", {}
-    )["ApiKeyAuth"] = {
-        "type": "apiKey",
-        "name": "X-API-Key",
-        "in": "header",
-        "description": "Provide the API key via the X-API-Key header"
-    }
+    # Update API key authentication scheme metadata
+    components = openapi_schema.setdefault("components", {})
+    security_schemes = components.setdefault("securitySchemes", {})
+    api_key_scheme = security_schemes.get("APIKeyHeader")
+    if api_key_scheme is None:
+        api_key_scheme = security_schemes.setdefault(
+            "APIKeyHeader",
+            {"type": "apiKey", "name": "X-API-Key", "in": "header"},
+        )
+    api_key_scheme["description"] = "Provide the API key via the X-API-Key header"
     openapi_schema["openapi"] = "3.1.0"
     app.openapi_schema = openapi_schema
     return app.openapi_schema

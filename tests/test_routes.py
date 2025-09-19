@@ -211,8 +211,8 @@ def test_create_pdf_endpoint_generate_pdf_error(monkeypatch):
     assert response.status_code == 500
     assert response.json() == {
         "status": 500,
-        "code": "internal_server_error",
-        "message": "Internal Server Error",
+        "code": "pdf_generation_error",
+        "message": "Error generating PDF",
         "details": "boom",
     }
 
@@ -247,4 +247,10 @@ def test_download_route_serves_file():
 def test_download_route_rejects_path_traversal():
     client = TestClient(app)
     response = client.get("/downloads/%2e%2e/etc/passwd")
+    assert response.status_code == 400
+
+
+def test_download_route_rejects_relative_sibling_directory():
+    client = TestClient(app)
+    response = client.get("/downloads/..%2Fdownloads-evil/file.pdf")
     assert response.status_code == 400
